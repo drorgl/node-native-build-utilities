@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "publish-github" : "ts-node publish-github.ts",
-    "download": "ts-node download.ts",
+    "download": "ts-node download.ts  https://github.com/drorgl/experiments/releases/download/v1.0.0/experiments-v1.0.0-x64-vs14.7zx tt.zip",
+    "download-big" : "ts-node download.ts https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20170308-3016e91-win64-static.zip tt.zip",
     "7zip": "ts-node 7zip",
+    "verify-configuration" : "ts-node verify_configuration.ts",
     "test": "test native",
     "tslint": "tslint -c tslint.json '*.ts'"
   },

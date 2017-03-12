@@ -1,10 +1,11 @@
 import * as github from "github";
-
 import fs = require("fs");
 import path = require("path");
 import app_root_path = require("app-root-path");
 import promptly = require("promptly");
 import ini = require("ini");
+
+import { cancel, download } from "./download-accessor";
 
 import { node_package } from "./package-accessor";
 
@@ -308,6 +309,11 @@ export class GitHubAccessor {
 			filePath, name, label
 		});
 		return asset;
+	}
+
+	public async download_asset(owner: string, repo: string, release_name: string, filename: string, localfilename: string) {
+		let downloadurl = `https://github.com/${owner}/${repo}/releases/download/${release_name}/${filename}`;
+		await download(downloadurl, localfilename, true);
 	}
 
 	private async test_authentication() {
