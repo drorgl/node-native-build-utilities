@@ -8,6 +8,7 @@ interface IDownloadItem {
 	downloadurl: string;
 	filestream: fs.WriteStream;
 	filename: string;
+	length: number;
 }
 
 let _file_streams: { [downloadurl: string]: IDownloadItem } = {};
@@ -31,7 +32,8 @@ export function download(downloadurl: string, filename: string, displayProgress:
 		_file_streams[downloadurl] = {
 			downloadurl,
 			filename,
-			filestream: null
+			filestream: null,
+			length: -1
 		};
 
 		const downloadurlsplit = url.parse(downloadurl);
@@ -95,6 +97,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 			file = fs.createWriteStream(filename);
 
 			_file_streams[downloadurl].filestream = file;
+			_file_streams[downloadurl].length = len;
 
 			console.log();
 
@@ -124,12 +127,12 @@ export function download(downloadurl: string, filename: string, displayProgress:
 				}
 				console.log("downloaded ", filesize + "bytes");
 
-				if (filesize > 0) {
+				if (filesize === _file_streams[downloadurl].length) {
 					resolve(true);
-					process.exit(0);
+				} else if (filesize > 0) {
+					resolve(false);
 				} else {
 					reject("file not found");
-					process.exit(1);
 				}
 			});
 		});
