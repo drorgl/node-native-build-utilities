@@ -19,7 +19,7 @@ interface ISource {
 
 interface IDependency {
 	packages: string[];
-	pkgconfig: string[];
+	pkgconfig: { [package_name: string]: string };
 	headers: { [package_name: string]: IPrecompiledSource[] };
 	libraries: { [package_name: string]: IPrecompiledSource[] };
 	sources: Array<string | ISource>;
@@ -35,6 +35,6 @@ export function read_native_gyp(filename: string): INativeGyp {
 	}
 
 	let file = fs.readFileSync(filename).toString("utf8");
-	file = strip_json_comments(file,{whitespace:true});
-	return <INativeGyp>JSON.parse(file);
+	file = strip_json_comments(file, { whitespace: true });
+	return <INativeGyp> JSON.parse(file);
 }
