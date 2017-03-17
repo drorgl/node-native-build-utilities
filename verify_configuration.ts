@@ -1,4 +1,5 @@
 import child_process = require("child_process");
+
 const msbuild_version_regex = /^(\d+)\.?(\d+)\.?(\d+)?(\.\d+)$/gm;
 const node_gyp_version_regex = /^v(\d+)\.?(\d+)\.?(\d+)?(\.\d+)$/gm;
 
@@ -11,7 +12,10 @@ if (node_gyp_status.status === 0) {
 	console.error("node-gyp not installed", node_gyp_status);
 }
 
+
+
 // npm config set msvs_version 2015
+
 // npm install --global --production windows-build-tools
 let msbuild_status = child_process.spawnSync("msbuild", ["/version"], { shell: true });
 if (msbuild_status.status === 0) {

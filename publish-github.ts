@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // publish to github
 import program = require("commander");
 import { GitHubAccessor, IAsset } from "./github-accessor";

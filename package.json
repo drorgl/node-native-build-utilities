@@ -2,14 +2,21 @@
   "name": "node-native-build-utilities",
   "version": "1.0.0",
   "description": "node addon native build utilities",
+  "bin": {
+    "nnbu-configure": "dist/native_configure.js",
+    "nnbu-publish": "dist/publish-github.js"
+  },
   "main": "index.js",
   "scripts": {
-    "publish-github" : "ts-node publish-github.ts",
+    "build": "tsc",
+    "prepare": "ts-node native_configure.ts",
+    "publish-github": "ts-node publish-github.ts",
     "download": "ts-node download.ts  https://github.com/drorgl/experiments/releases/download/v1.0.0/experiments-v1.0.0-x64-vs14.7zx tt.zip",
-    "download-big" : "ts-node download.ts https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20170308-3016e91-win64-static.zip tt.zip",
+    "download-big": "ts-node download.ts https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20170308-3016e91-win64-static.zip tt.zip",
     "7zip": "ts-node 7zip",
-    "verify-configuration" : "ts-node verify_configuration.ts",
+    "verify-configuration": "ts-node verify_configuration.ts",
     "test": "test native",
+    "configure": "node-gyp configure",
     "tslint": "tslint -c tslint.json '*.ts'"
   },
   "repository": {
@@ -21,7 +28,10 @@
     "addon",
     "native",
     "build",
-    "utilities"
+    "utilities",
+    "c",
+    "c++",
+    "module"
   ],
   "author": "Dror Gluska",
   "license": "BSD-3-Clause",
@@ -40,6 +50,8 @@
     "@types/node-7z": "^0.4.2",
     "@types/progress": "^1.1.28",
     "@types/promptly": "^1.1.28",
+    "@types/semver": "^5.3.31",
+    "@types/strip-json-comments": "0.0.28",
     "app-root-path": "^2.0.1",
     "commander": "^2.9.0",
     "github": "^9.1.0",
@@ -47,6 +59,8 @@
     "node-7z": "^0.4.0",
     "progress": "^1.1.8",
     "promptly": "^2.1.0",
+    "semver": "^5.3.0",
+    "strip-json-comments": "^2.0.1",
     "ts-node": "^2.1.0",
     "typescript": "^2.2.1"
   },
