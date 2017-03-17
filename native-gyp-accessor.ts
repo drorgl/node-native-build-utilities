@@ -1,4 +1,5 @@
 import fs = require("fs");
+import strip_json_comments = require("strip-json-comments");
 
 interface IPrecompiledSource {
 	arch: string;
@@ -34,5 +35,6 @@ export function read_native_gyp(filename: string): INativeGyp {
 	}
 
 	let file = fs.readFileSync(filename).toString("utf8");
+	file = strip_json_comments(file,{whitespace:true});
 	return <INativeGyp>JSON.parse(file);
 }

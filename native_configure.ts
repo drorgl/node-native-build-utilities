@@ -1,9 +1,13 @@
+#!/usr/bin/env node
+
 import fs = require("fs");
 import commander = require("commander");
 import { node_package } from "./package-accessor";
 
 import * as detection from "./detection_utilities";
 import { read_native_gyp } from "./native-gyp-accessor";
+
+import * as pkg_config from "./pkg-config-accessor";
 
 let default_toolset: string = null;
 if (detection.msbuild_version) {
@@ -57,9 +61,13 @@ for (let dependency_name of Object.getOwnPropertyNames(native_gyp.dependencies))
 	let dependency = native_gyp.dependencies[dependency_name];
 
 	// if current architecture is node architecture, try to use pkgconfig, fallback to prebuilt, fallback to source
-	if (detection.platform === selected_platform && detection.arch === selected_arch) {
+	if (detection.platform === selected_platform && detection.arch === selected_arch && detection.pkg_config_version != null) {
 		// check all packages exist
-		
+		if (dependency.packages && dependency.packages.length > 0){
+			for(let package_name in dependency.packages){
+				pkg_config.exists
+			}
+		}
 	}
 
 	// if prebuilt exists in toolset and architecture, use prebuilt, fallback to source

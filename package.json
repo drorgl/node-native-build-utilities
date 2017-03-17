@@ -2,9 +2,13 @@
   "name": "node-native-build-utilities",
   "version": "1.0.0",
   "description": "node addon native build utilities",
-  "bin":"./bin/nnbu",
+  "bin": {
+    "nnbu-configure": "dist/native_configure.js",
+    "nnbu-publish": "dist/publish-github.js"
+  },
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "prepare": "ts-node native_configure.ts",
     "publish-github": "ts-node publish-github.ts",
     "download": "ts-node download.ts  https://github.com/drorgl/experiments/releases/download/v1.0.0/experiments-v1.0.0-x64-vs14.7zx tt.zip",
@@ -47,6 +51,7 @@
     "@types/progress": "^1.1.28",
     "@types/promptly": "^1.1.28",
     "@types/semver": "^5.3.31",
+    "@types/strip-json-comments": "0.0.28",
     "app-root-path": "^2.0.1",
     "commander": "^2.9.0",
     "github": "^9.1.0",
@@ -55,6 +60,7 @@
     "progress": "^1.1.8",
     "promptly": "^2.1.0",
     "semver": "^5.3.0",
+    "strip-json-comments": "^2.0.1",
     "ts-node": "^2.1.0",
     "typescript": "^2.2.1"
   },
