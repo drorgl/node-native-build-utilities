@@ -7,6 +7,10 @@ const node_gyp_version_regex = /^v(\d+)\.?(\d+)\.?(\d+)?(\.\d+)$/gm;
 const v_version_regex = /v(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
 const version_regex = /(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
 
+const git_version_regex = /git version (\d+)(?:\.(\d+))?(?:\.(\d+))?/gm;
+
+const zip7_version_regex = /7-Zip\s\[(\d+)\]\s((\d+)(?:\.(\d+))?(?:\.(\d+))?)\s+Copyright\s+\(c\)/gm;
+
 // enum platform_type {
 // 	darwin,
 // 	freebsd,
@@ -124,6 +128,40 @@ if (pkg_config_status.status === 0) {
 	pkg_config_version = {
 		version: pkg_config_status.output.join("").toString().trim(),
 		normalized_version: normalize_version(parsed_version[0]),
+		major: parseInt(parsed_version[0]),
+		minor: parseInt(parsed_version[1]),
+		patch: parseInt(parsed_version[2])
+	};
+}
+
+export let git_version: IVersionInfo = null;
+export function git_version_satisfies(required_version: string): boolean {
+	return semver.satisfies(git_version.version, required_version);
+}
+
+let git_status = child_process.spawnSync("git", ["--version"], { shell: true });
+if (git_status.status === 0) {
+	let parsed_version = git_version_regex.exec(git_status.output.join("").toString()).slice(1);
+	git_version = {
+		version: parsed_version.join("."),
+		normalized_version: normalize_version(parsed_version.join(".")),
+		major: parseInt(parsed_version[0]),
+		minor: parseInt(parsed_version[1]),
+		patch: parseInt(parsed_version[2])
+	};
+}
+
+export let z7_version: IVersionInfo = null;
+export function z7_version_satisfies(required_version: string): boolean {
+	return semver.satisfies(z7_version.version, required_version);
+}
+
+let z7_status = child_process.spawnSync("7z", [], { shell: true });
+if (z7_status.status === 0) {
+	let parsed_version = zip7_version_regex.exec(z7_status.output.join("").toString()).slice(2);
+	z7_version = {
+		version: parsed_version.join("."),
+		normalized_version: normalize_version(parsed_version.join(".")),
 		major: parseInt(parsed_version[0]),
 		minor: parseInt(parsed_version[1]),
 		patch: parseInt(parsed_version[2])
