@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "node addon native build utilities",
   "bin": {
+    "nnbu-dependency" : "dist/dependency.js",
     "nnbu-configure": "dist/native_configure.js",
     "nnbu-publish": "dist/publish-github.js"
   },

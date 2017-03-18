@@ -94,6 +94,12 @@ if (!detection.z7_version) {
 
 		interface IConfiguredDependency {
 			source: string;
+
+			gyp_file : string;
+			gyp_target: string;
+
+			headers: string[];
+			libraries:string[];
 		}
 
 		let configured_dependencies: { [dependency_name: string]: IConfiguredDependency } = {};
@@ -161,6 +167,24 @@ if (!detection.z7_version) {
 				}
 			}
 
+			// check prebuilt binaries are compatible with selected architecture and platform
+			for (let prebuilt_library_name in dependency.libraries) {
+				if (!dependency.libraries.hasOwnProperty(prebuilt_library_name)) {
+					continue;
+				}
+				let prebuilt_precompiled_source = dependency.libraries[prebuilt_library_name];
+				for (let prebuilt_source of prebuilt_precompiled_source) {
+					if (
+						(!prebuilt_source.arch || prebuilt_source.arch === selected_arch) &&
+						(!prebuilt_source.platform || prebuilt_source.platform === selected_platform) &&
+						(!prebuilt_source.toolset || prebuilt_source.toolset === selected_toolset) &&
+						(!prebuilt_source.toolset_version || semver.satisfies(selected_toolset_version, prebuilt_source.toolset_version))) {
+
+						precompiled_sources.push(prebuilt_source);
+					}
+				}
+			}
+
 			if (precompiled_sources.length > 0) {
 				// TODO: download/extract all prebuilt binaries
 				for (let source of precompiled_sources) {
@@ -203,6 +227,8 @@ if (!detection.z7_version) {
 			// dependency.packages
 		}
 		console.log("configuration:", configured_dependencies);
+
+		fs.writeFileSync("native_configuration.json", JSON.stringify(configured_dependencies));
 
 	} catch (e) {
 		console.log("unable to configure", e);
@@ -289,7 +315,7 @@ async function git_clone(source: string | ISource, cwd: string) {
 		if (src.branch) {
 			await gitAccessor.git_checkout(path.join(cwd, repo_path), src.branch);
 		}
-	}else{
-		console.log("repo",gitsrc,"already exists, skipping");
+	} else {
+		console.log("repo", gitsrc, "already exists, skipping");
 	}
 }
