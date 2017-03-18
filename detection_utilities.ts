@@ -4,6 +4,9 @@ import semver = require("semver");
 const msbuild_version_regex = /^(\d+)\.?(\d+)\.?(\d+)?(\.\d+)$/gm;
 const node_gyp_version_regex = /^v(\d+)\.?(\d+)\.?(\d+)?(\.\d+)$/gm;
 
+const v_version_regex = /v(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
+const version_regex = /(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
+
 // enum platform_type {
 // 	darwin,
 // 	freebsd,
@@ -41,8 +44,19 @@ const node_gyp_version_regex = /^v(\d+)\.?(\d+)\.?(\d+)?(\.\d+)$/gm;
 // 		arch = arch_type.unknown; break;
 // }
 
+function normalize_version(ver: string): string {
+	if (v_version_regex.test(ver)) {
+		return v_version_regex.exec(ver).slice(1, 4).join(".");
+	} else if (version_regex.test(ver)) {
+		return version_regex.exec(ver).slice(1, 4).join(".");
+	} else {
+		return ver;
+	}
+}
+
 interface IVersionInfo {
 	version: string;
+	normalized_version: string;
 	major: number;
 	minor: number;
 	patch: number;
@@ -58,6 +72,7 @@ if (node_gyp_status.status === 0) {
 	let parsed_version = node_gyp_version_regex.exec(node_gyp_status.output.join("").toString());
 	node_gyp_version = {
 		version: parsed_version[0],
+		normalized_version: normalize_version(parsed_version[0]),
 		major: parseInt(parsed_version[1]),
 		minor: parseInt(parsed_version[2]),
 		patch: parseInt(parsed_version[2])
@@ -74,6 +89,7 @@ if (msbuild_status.status === 0) {
 	let parsed_version = msbuild_version_regex.exec(msbuild_status.output.join("").toString());
 	msbuild_version = {
 		version: parsed_version[0].trim(),
+		normalized_version: normalize_version(parsed_version[0]),
 		major: parseInt(parsed_version[1]),
 		minor: parseInt(parsed_version[2]),
 		patch: parseInt(parsed_version[2])
@@ -90,6 +106,7 @@ if (gcc_status.status === 0) {
 	let parsed_version = gcc_status.output.join("").toString().split(".");
 	gcc_version = {
 		version: gcc_status.output.join("").toString().trim(),
+		normalized_version: normalize_version(parsed_version[0]),
 		major: parseInt(parsed_version[0]),
 		minor: parseInt(parsed_version[1]),
 		patch: parseInt(parsed_version[2])
@@ -106,6 +123,7 @@ if (pkg_config_status.status === 0) {
 	let parsed_version = pkg_config_status.output.join("").toString().split(".");
 	pkg_config_version = {
 		version: pkg_config_status.output.join("").toString().trim(),
+		normalized_version: normalize_version(parsed_version[0]),
 		major: parseInt(parsed_version[0]),
 		minor: parseInt(parsed_version[1]),
 		patch: parseInt(parsed_version[2])

@@ -1,7 +1,7 @@
 import fs = require("fs");
 import strip_json_comments = require("strip-json-comments");
 
-interface IPrecompiledSource {
+export interface IPrecompiledSource {
 	arch: string;
 	platform: string;
 	toolset: string;
@@ -10,7 +10,7 @@ interface IPrecompiledSource {
 	copy?: string;
 }
 
-interface ISource {
+export interface ISource {
 	source: string;
 	branch?: string;
 	gyp_file?: string;
