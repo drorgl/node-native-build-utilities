@@ -54,7 +54,7 @@ export function download_size(downloadurl: string): Promise<number> {
 
 		req.on("response", (res: http.ClientResponse) => {
 			if (res.statusCode === 404) {
-				reject("not found");
+				reject("file not found - " + downloadurl);
 				return;
 			}
 
@@ -112,12 +112,12 @@ export function download(downloadurl: string, filename: string, displayProgress:
 
 		req.on("response", (res: http.ClientResponse) => {
 			if (res.statusCode === 404) {
-				console.log("file not found");
+				reject("file not found - " + downloadurl);
 				return;
 			}
 
 			if (!_file_streams[downloadurl]) {
-				console.log("download cancelled");
+				reject("download cancelled");
 				req.end();
 				return;
 			}
@@ -145,7 +145,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 
 			res.on("data", (chunk) => {
 				if (!_file_streams[downloadurl]) {
-					console.log("download cancelled");
+					reject("download cancelled");
 					req.end();
 					return;
 				}

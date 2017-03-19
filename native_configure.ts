@@ -20,6 +20,9 @@ import child_process = require("child_process");
 
 import * as gitAccessor from "./git-accessor";
 
+import * as nativeConfiguration from "./native-configuration-accessor";
+
+
 let default_toolset: string = null;
 let default_toolset_version: string = null;
 if (detection.msbuild_version) {
@@ -95,14 +98,14 @@ if (!detection.z7_version) {
 		interface IConfiguredDependency {
 			source: string;
 
-			gyp_file : string;
-			gyp_target: string;
+			gyp_file?: string;
+			gyp_target?: string;
 
-			headers: string[];
-			libraries:string[];
+			headers?: string[];
+			libraries?: string[];
 		}
 
-		let configured_dependencies: { [dependency_name: string]: IConfiguredDependency } = {};
+		let configured_dependencies: nativeConfiguration.IDependencies = {};
 
 		for (let dependency_name in native_gyp.dependencies) {
 			if (!native_gyp.dependencies.hasOwnProperty(dependency_name)) {
@@ -185,6 +188,8 @@ if (!detection.z7_version) {
 				}
 			}
 
+			//TODO: add handling for "copy" section (perhaps multiple sections?)
+
 			if (precompiled_sources.length > 0) {
 				// TODO: download/extract all prebuilt binaries
 				for (let source of precompiled_sources) {
@@ -228,10 +233,10 @@ if (!detection.z7_version) {
 		}
 		console.log("configuration:", configured_dependencies);
 
-		fs.writeFileSync("native_configuration.json", JSON.stringify(configured_dependencies));
+		await nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configured_dependencies);
 
 	} catch (e) {
-		console.log("unable to configure", e);
+		console.log("unable to configure", e,e.stackTrace);
 		process.exit(1);
 	}
 })();

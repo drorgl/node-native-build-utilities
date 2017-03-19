@@ -1,13 +1,14 @@
+#!/usr/bin/env node
+
 import fs = require("fs");
 import commander = require("commander");
-import { node_package } from "./package-accessor";
 import * as detection from "./detection_utilities";
-
+import * as nativeConfiguration from "./native-configuration-accessor";
+import { node_package } from "./package-accessor";
+import * as pkgConfig from "./pkg-config-accessor";
 
 // return data for gyp configuration
 // read "native_configuration.json"
-
-
 
 // pkg-config for gcc, flag for visual studio
 
@@ -27,14 +28,13 @@ if (detection.msbuild_version) {
 
 let default_source_path = "./build.sources";
 
-console.log("native build configuration", node_package.version);
 commander
 	.version(node_package.version)
-//	.option("-f, --force [type]", "force setup of package/binary/source")
-//	.option("-p, --platform [type]", "assume platform is win/linux", process.platform)
-//	.option("-a, --arch [architecture]", "assume architecture is x64/ia32/arm", process.arch)
-//	.option("-t, --toolset [type]", "assume toolset is vc/gcc", default_toolset)
-//	.option("-s, --toolset-version [version]", "assume toolset version", default_toolset_version)
+	// 	.option("-f, --force [type]", "force setup of package/binary/source")
+	// 	.option("-p, --platform [type]", "assume platform is win/linux", process.platform)
+	// 	.option("-a, --arch [architecture]", "assume architecture is x64/ia32/arm", process.arch)
+	// 	.option("-t, --toolset [type]", "assume toolset is vc/gcc", default_toolset)
+	// 	.option("-s, --toolset-version [version]", "assume toolset version", default_toolset_version)
 	.option("-p, --source-path", "assume source path", default_source_path)
 	.option("-v, --verify", "verify configuration")
 	.option("-d, --dependency [name]", "retrieve dependency by name")
@@ -42,42 +42,55 @@ commander
 	.option("-l, --libs [name]", "retrieve libraries by name")
 	.parse(process.argv);
 
+(async () => {
+try{
+	let configured_dependencies: nativeConfiguration.IDependencies = await nativeConfiguration.load(nativeConfiguration.NATIVE_CONFIGURATION_FILE);
 
-
-interface IConfiguredDependency {
-	source: string;
-	
-	gyp_file : string;
-	gyp_target: string;
-
-	headers: string[];
-	libraries:string[];
-}
-let configured_dependencies: { [dependency_name: string]: IConfiguredDependency } = JSON.parse(fs.readFileSync("native_configuration.json").toString("utf8"));
-
-if (commander["sourcePath"]){
-	default_source_path = commander["sourcePath"];
-}
-
-if (commander["dependency"]){
-	let dep = configured_dependencies[commander["dependency"]];
-	if (dep){
-		console.log(dep.gyp_file + ":" + dep.gyp_target);
+	if (commander["sourcePath"]) {
+		default_source_path = commander["sourcePath"];
 	}
-}
 
-if (commander["headers"]){
-	let dep = configured_dependencies[commander["headers"]];
-	if (dep){
-		console.log(dep.headers);
+	if (commander["dependency"]) {
+		let dep = configured_dependencies[commander["dependency"]];
+		if (dep) {
+			if (dep.source == "source"){
+				console.log(dep.gyp_file + ":" + dep.gyp_target);
+			}
+		}
 	}
-}
 
-if (commander["libs"]){
-	let dep = configured_dependencies[commander["libs"]];
-	if (dep){
-		console.log(dep.libraries);
+	if (commander["headers"]) {
+		let dep = configured_dependencies[commander["headers"]];
+		if (dep) {
+			if (dep.source == "pkg-config"){
+				//iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
+				//pkgConfig.info("")
+			}else if (dep.source == "headers"){
+				//iterate through headers in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+			}else if (dep.source == "source"){
+				//ignore, should be handled by "dependency" section
+			}
+			console.log(dep.headers);
+		}
 	}
-}
 
-// '!@(pkg-config --libs-only-l apr-1)',
+	if (commander["libs"]) {
+		let dep = configured_dependencies[commander["libs"]];
+		if (dep) {
+			if (dep.source == "pkg-config"){
+				//iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
+				//pkgConfig.info("")
+			}else if (dep.source == "headers"){
+				//iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+			}else if (dep.source == "source"){
+				//ignore, should be handled by "dependency" section
+			}
+			console.log(dep.libraries);
+		}
+	}
+
+}catch (e){
+	console.log("error executing dependency tracker",e,e.stackTrace);
+	process.exit(1);
+}
+})();
