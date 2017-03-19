@@ -37,7 +37,7 @@ export function info(module_name: string, info_type: module_info) {
 
 export function exists(module_name: string): boolean {
 	let result = spawnSync("pkg-config", ["--exists", module_name], { shell: true });
-	return result.output.join("").toString().trim() === "0";
+	return result.output.join("").toString().trim() === "0" || result.status === 0;
 }
 
 interface IPackage {

@@ -43,54 +43,54 @@ commander
 	.parse(process.argv);
 
 (async () => {
-try{
-	let configured_dependencies: nativeConfiguration.IDependencies = await nativeConfiguration.load(nativeConfiguration.NATIVE_CONFIGURATION_FILE);
+	try {
+		let native_configuration: nativeConfiguration.INativeConfiguration = await nativeConfiguration.load(nativeConfiguration.NATIVE_CONFIGURATION_FILE);
 
-	if (commander["sourcePath"]) {
-		default_source_path = commander["sourcePath"];
-	}
+		if (commander["sourcePath"]) {
+			default_source_path = commander["sourcePath"];
+		}
 
-	if (commander["dependency"]) {
-		let dep = configured_dependencies[commander["dependency"]];
-		if (dep) {
-			if (dep.source == "source"){
-				console.log(dep.gyp_file + ":" + dep.gyp_target);
+		if (commander["dependency"]) {
+			let dep = native_configuration.dependencies[commander["dependency"]];
+			if (dep) {
+				if (dep.source === "source") {
+					console.log(dep.gyp_file + ":" + dep.gyp_target);
+				}
 			}
 		}
-	}
 
-	if (commander["headers"]) {
-		let dep = configured_dependencies[commander["headers"]];
-		if (dep) {
-			if (dep.source == "pkg-config"){
-				//iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
-				//pkgConfig.info("")
-			}else if (dep.source == "headers"){
-				//iterate through headers in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
-			}else if (dep.source == "source"){
-				//ignore, should be handled by "dependency" section
+		if (commander["headers"]) {
+			let dep = native_configuration.dependencies[commander["headers"]];
+			if (dep) {
+				if (dep.source === "pkg-config") {
+					//iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
+					//pkgConfig.info("")
+				} else if (dep.source === "headers") {
+					//iterate through headers in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+				} else if (dep.source === "source") {
+					//ignore, should be handled by "dependency" section
+				}
+				console.log(dep.headers);
 			}
-			console.log(dep.headers);
 		}
-	}
 
-	if (commander["libs"]) {
-		let dep = configured_dependencies[commander["libs"]];
-		if (dep) {
-			if (dep.source == "pkg-config"){
-				//iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
-				//pkgConfig.info("")
-			}else if (dep.source == "headers"){
-				//iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
-			}else if (dep.source == "source"){
-				//ignore, should be handled by "dependency" section
+		if (commander["libs"]) {
+			let dep = native_configuration.dependencies[commander["libs"]];
+			if (dep) {
+				if (dep.source === "pkg-config") {
+					//iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
+					//pkgConfig.info("")
+				} else if (dep.source === "headers") {
+					//iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+				} else if (dep.source === "source") {
+					//ignore, should be handled by "dependency" section
+				}
+				console.log(dep.libraries);
 			}
-			console.log(dep.libraries);
 		}
-	}
 
-}catch (e){
-	console.log("error executing dependency tracker",e,e.stackTrace);
-	process.exit(1);
-}
+	} catch (e) {
+		console.log("error executing dependency tracker", e, e.stackTrace);
+		process.exit(1);
+	}
 })();

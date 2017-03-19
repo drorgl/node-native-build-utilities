@@ -20,12 +20,21 @@ export interface IDependencies {
 	[dependency_name: string]: IConfiguredDependency;
 }
 
-export async function save(filename: string, configuration: IDependencies) {
-	await writeFile(filename, JSON.stringify(configuration));
+export interface INativeConfiguration {
+	platform: string;
+	arch: string;
+	toolset: string;
+	toolset_version: string;
+	source_path: string;
+	dependencies: IDependencies;
 }
 
-export function load(filename: string): Promise<IDependencies> {
-	return new Promise<IDependencies>(async (resolve, reject) => {
+export async function save(filename: string, configuration: INativeConfiguration) {
+	await writeFile(filename, JSON.stringify(configuration,null,"\t"));
+}
+
+export function load(filename: string): Promise<INativeConfiguration> {
+	return new Promise<INativeConfiguration>(async (resolve, reject) => {
 		try {
 			let fileContents = await readFile(filename, "utf8");
 			resolve(JSON.parse(fileContents));

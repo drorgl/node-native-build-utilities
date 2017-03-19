@@ -48,7 +48,7 @@ const zip7_version_regex = /7-Zip\s\[(\d+)\]\s((\d+)(?:\.(\d+))?(?:\.(\d+))?)\s+
 // 		arch = arch_type.unknown; break;
 // }
 
-function normalize_version(ver: string): string {
+export function normalize_version(ver: string): string {
 	if (v_version_regex.test(ver)) {
 		return v_version_regex.exec(ver).slice(1, 4).join(".");
 	} else if (version_regex.test(ver)) {
@@ -110,7 +110,7 @@ if (gcc_status.status === 0) {
 	let parsed_version = gcc_status.output.join("").toString().split(".");
 	gcc_version = {
 		version: gcc_status.output.join("").toString().trim(),
-		normalized_version: normalize_version(parsed_version[0]),
+		normalized_version: normalize_version(gcc_status.output.join("").toString().trim()),
 		major: parseInt(parsed_version[0]),
 		minor: parseInt(parsed_version[1]),
 		patch: parseInt(parsed_version[2])

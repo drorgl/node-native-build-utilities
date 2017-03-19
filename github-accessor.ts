@@ -336,7 +336,7 @@ export class GitHubAccessor {
 	}
 
 	private save_token(token: github.AccessToken) {
-		fs.writeFile(this._auth_cache_filename, JSON.stringify(token), (err: NodeJS.ErrnoException) => {
+		fs.writeFile(this._auth_cache_filename, JSON.stringify(token,null,"\t"), (err: NodeJS.ErrnoException) => {
 			if (err) {
 				console.error("unable to save token, read only?");
 			}

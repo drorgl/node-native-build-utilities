@@ -131,7 +131,7 @@ if (!detection.z7_version) {
 							failed_packages = true;
 						} else {
 							let pkg_version = pkg_config.modversion(package_name);
-							if (!semver.satisfies(pkg_version, dependency.pkgconfig[package_name])) {
+							if (!semver.satisfies(detection.normalize_version(pkg_version), dependency.pkgconfig[package_name])) {
 								console.warn("package", package_name, "exists but version", pkg_version, "does not match -", dependency.pkgconfig[package_name]);
 								failed_packages = true;
 							}
@@ -233,10 +233,19 @@ if (!detection.z7_version) {
 		}
 		console.log("configuration:", configured_dependencies);
 
-		await nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configured_dependencies);
+		let configuration: nativeConfiguration.INativeConfiguration = {
+			platform: selected_platform,
+			arch: selected_arch,
+			toolset: selected_toolset,
+			toolset_version: selected_toolset_version,
+			source_path: default_source_path,
+			dependencies: configured_dependencies
+		};
+
+		await nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration);
 
 	} catch (e) {
-		console.log("unable to configure", e,e.stackTrace);
+		console.log("unable to configure", e, e.stackTrace);
 		process.exit(1);
 	}
 })();
