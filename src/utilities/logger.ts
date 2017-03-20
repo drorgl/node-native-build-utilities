@@ -1,5 +1,6 @@
 import fs = require("fs");
 import util = require("util");
+import os = require("os");
 
 let _log_to_file: string = null;
 
@@ -28,7 +29,7 @@ export function debug(message?: any, ...optionalParams: any[]) {
 			console.debug("DEBUG - " + util.format.apply(null, arguments));
 		}
 		if (_log_to_file) {
-			fs.appendFile(_log_to_file, "DEBUG - " + util.format.apply(null, arguments));
+			fs.appendFile(_log_to_file, "DEBUG - " + util.format.apply(null, arguments) + os.EOL);
 		}
 	}
 }
@@ -39,7 +40,7 @@ export function info(message?: any, ...optionalParams: any[]) {
 			console.info("INFO - " + util.format.apply(null, arguments));
 		}
 		if (_log_to_file) {
-			fs.appendFile(_log_to_file, "INFO - " + util.format.apply(null, arguments));
+			fs.appendFile(_log_to_file, "INFO - " + util.format.apply(null, arguments) + os.EOL);
 		}
 	}
 }
@@ -50,7 +51,7 @@ export function warn(message?: any, ...optionalParams: any[]) {
 			console.warn("WARN - " + util.format.apply(null, arguments));
 		}
 		if (_log_to_file) {
-			fs.appendFile(_log_to_file, "WARN - " + util.format.apply(null, arguments));
+			fs.appendFile(_log_to_file, "WARN - " + util.format.apply(null, arguments) + os.EOL);
 		}
 	}
 }
@@ -61,7 +62,7 @@ export function error(message?: any, ...optionalParams: any[]) {
 			console.error("ERROR - " + util.format.apply(null, arguments));
 		}
 		if (_log_to_file) {
-			fs.appendFile(_log_to_file, "ERROR - " + util.format.apply(null, arguments));
+			fs.appendFile(_log_to_file, "ERROR - " + util.format.apply(null, arguments) + os.EOL);
 		}
 	}
 }

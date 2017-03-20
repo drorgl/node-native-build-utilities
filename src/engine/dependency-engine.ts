@@ -58,8 +58,17 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 				}
 
 				if (failed_packages === false) {
+					let packages = [];
+					for (let package_name in dependency.pkgconfig) {
+						if (!dependency.pkgconfig.hasOwnProperty(package_name)) {
+							continue;
+						}
+						packages.push(package_name);
+					}
+
 					dependencies_information.dependencies[dependency_name] = {
-						source: "pkg-config"
+						source: "pkg-config",
+						packages
 					};
 				}
 			}
@@ -69,7 +78,8 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			continue;
 		}
 
-		let precompiled_sources: nativeGyp.IPrecompiledSource[] = [];
+		let precompiled_header_sources: nativeGyp.IPrecompiledSource[] = [];
+		let precompiled_library_sources: nativeGyp.IPrecompiledSource[] = [];
 
 		// check prebuilt binaries are compatible with selected architecture and platform
 		for (let prebuilt_header_name in dependency.headers) {
@@ -84,7 +94,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 					(!prebuilt_source.toolset || prebuilt_source.toolset === configuration.toolset) &&
 					(!prebuilt_source.toolset_version || semver.satisfies(configuration.toolset_version, prebuilt_source.toolset_version))) {
 
-					precompiled_sources.push(prebuilt_source);
+					precompiled_header_sources.push(prebuilt_source);
 				}
 			}
 		}
@@ -102,21 +112,32 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 					(!prebuilt_source.toolset || prebuilt_source.toolset === configuration.toolset) &&
 					(!prebuilt_source.toolset_version || semver.satisfies(configuration.toolset_version, prebuilt_source.toolset_version))) {
 
-					precompiled_sources.push(prebuilt_source);
+					precompiled_library_sources.push(prebuilt_source);
 				}
 			}
 		}
 
 		// TODO: add handling for "copy" section (perhaps multiple sections?)
 
-		if (precompiled_sources.length > 0) {
+		if (precompiled_header_sources.length > 0 || precompiled_library_sources.length > 0) {
 			// TODO: download/extract all prebuilt binaries
-			for (let source of precompiled_sources) {
+			let precompiled_header_paths = [];
+			let precompiled_library_paths = [];
+
+			for (let source of precompiled_header_sources) {
 				dependencies_information.precompiled_sources.push(source);
+				precompiled_header_paths.push(parse_precompiled_source(source).path);
+			}
+
+			for (let source of precompiled_library_sources) {
+				dependencies_information.precompiled_sources.push(source);
+				precompiled_library_paths.push(parse_precompiled_source(source).path);
 			}
 
 			dependencies_information.dependencies[dependency_name] = {
-				source: "prebuilt"
+				source: "prebuilt",
+				headers: precompiled_header_paths,
+				libraries: precompiled_library_paths
 			};
 		}
 
@@ -138,7 +159,8 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 				// await git_clone(source, default_source_path);
 			}
 			dependencies_information.dependencies[dependency_name] = {
-				source: "source"
+				source: "source",
+				gyp_sources: dependency.sources
 			};
 		}
 
@@ -185,19 +207,40 @@ async function download_source(source: nativeGyp.IPrecompiledSource, source_path
 	await download(fileurl, filename, true);
 }
 
+interface IPrecompiledSourceParsed {
+	url: string;
+	path: string;
+}
+
+function parse_precompiled_source(source: nativeGyp.IPrecompiledSource) {
+	let file_url_index = source.source.lastIndexOf("@");
+	if (file_url_index === -1) {
+		return {
+			url: source.source,
+			path: ""
+		};
+	}
+
+	return {
+		url: source.source.substr(0, file_url_index),
+		path: source.source.substr(file_url_index + 1)
+	};
+}
+
 async function extract_source(source: nativeGyp.IPrecompiledSource, source_path: string) {
-	let fileurl = source.source.substr(0, source.source.lastIndexOf("@"));
+	let parsed = parse_precompiled_source(source);
+
+	let fileurl = parsed.url;
 	let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
 
 	logger.info("extracting", filename, "into", source_path);
 	await extractFull(filename, source_path);
 }
 
-async function git_clone(source: string | nativeGyp.ISource, cwd: string) {
-	let src = <nativeGyp.ISource> source;
-	let ssource = <string> source;
+export function gyp_source_parse(source: string | nativeGyp.ISource): nativeGyp.ISource {
+	let src = <nativeGyp.ISource>source;
+	let ssource = <string>source;
 
-	// https://github.com/drorgl/ffmpeg.module.git#2.7@ffmpeg.gyp:avcodec
 	if (!src.source) {
 		let source_gyp_index = ssource.lastIndexOf("@");
 
@@ -230,8 +273,13 @@ async function git_clone(source: string | nativeGyp.ISource, cwd: string) {
 			gyp_target
 		};
 	}
+	return src;
+}
 
-	let gitsrc = (src.source) ? src.source : <string> source;
+async function git_clone(source: string | nativeGyp.ISource, cwd: string) {
+	let src = gyp_source_parse(source);
+
+	let gitsrc = (src.source) ? src.source : <string>source;
 
 	let repo_path = path.join(cwd, path.basename(gitsrc, path.extname(gitsrc)));
 

@@ -1,5 +1,6 @@
 import bluebird = require("bluebird");
 import fs = require("fs");
+import * as nativeGyp from "./native-gyp-accessor";
 
 let writeFile = bluebird.promisify<void, string, any>(fs.writeFile);
 let readFile = bluebird.promisify<string, string, string>(fs.readFile);
@@ -9,8 +10,9 @@ export const NATIVE_CONFIGURATION_FILE = "native_configuration.json";
 export interface IConfiguredDependency {
 	source: string;
 
-	gyp_file?: string;
-	gyp_target?: string;
+	packages?: string[];
+
+	gyp_sources?: Array<string | nativeGyp.ISource>;
 
 	headers?: string[];
 	libraries?: string[];
@@ -30,7 +32,7 @@ export interface INativeConfiguration {
 }
 
 export async function save(filename: string, configuration: INativeConfiguration) {
-	await writeFile(filename, JSON.stringify(configuration,null,"\t"));
+	await writeFile(filename, JSON.stringify(configuration, null, "\t"));
 }
 
 export function load(filename: string): Promise<INativeConfiguration> {

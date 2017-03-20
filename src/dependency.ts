@@ -9,7 +9,7 @@ import * as pkgConfig from "./accessors/pkg-config-accessor";
 import * as dependencyEngine from "./engine/dependency-engine";
 import * as detection from "./utilities/detection_utilities";
 import * as logger from "./utilities/logger";
-
+import path = require("path");
 // return data for gyp configuration
 // read "native_configuration.json"
 
@@ -48,6 +48,12 @@ commander
 let timestamp = new Date().getTime().toString();
 logger.log_to_file("nncu." + timestamp + ".log");
 
+if (commander["dependency"] || commander["headers"] || commander["libs"]) {
+	logger.log_to_console(false);
+}
+
+logger.info("arguments", process.argv);
+
 (async () => {
 	try {
 		if (!nativeGyp.exists()) {
@@ -65,44 +71,64 @@ logger.log_to_file("nncu." + timestamp + ".log");
 		}
 
 		if (commander["dependency"]) {
-			logger.log_to_console(false);
 			let dep = dependencies[commander["dependency"]];
 			if (dep) {
 				if (dep.source === "source") {
-					console.log(dep.gyp_file + ":" + dep.gyp_target);
+					let gyp_sources = "";
+					for (let gyp_src of dep.gyp_sources){
+						let gyp_source =  dependencyEngine.gyp_source_parse( gyp_src);
+						gyp_sources += " " + normalize_path( path.join( native_configuration.source_path, path.basename(gyp_source.source, path.extname(gyp_source.source)) , gyp_source.gyp_file)) + ":" + gyp_source.gyp_target;
+					}
+					console.log(gyp_sources);
 				}
 			}
 		}
 
 		if (commander["headers"]) {
-			logger.log_to_console(false);
 			let dep = dependencies[commander["headers"]];
 			if (dep) {
 				if (dep.source === "pkg-config") {
 					// iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
-					// pkgConfig.info("")
-				} else if (dep.source === "headers") {
+					let pkg_configs = "";
+					for (let pkg_source of dep.packages){
+						pkg_configs += " " +  pkgConfig.info(pkg_source,pkgConfig.module_info.cflags);
+					}
+					console.log(pkg_configs);
+				} else if (dep.source === "prebuilt") {
 					// iterate through headers in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+					let headers = "";
+					for (let header of dep.headers){
+						headers += " " + normalize_path( path.join( native_configuration.source_path , header));
+					}
+
+					console.log(headers);
 				} else if (dep.source === "source") {
 					// ignore, should be handled by "dependency" section
 				}
-				console.log(dep.headers);
 			}
 		}
 
 		if (commander["libs"]) {
-			logger.log_to_console(false);
 			let dep = dependencies[commander["libs"]];
 			if (dep) {
 				if (dep.source === "pkg-config") {
 					// iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
-					// pkgConfig.info("")
-				} else if (dep.source === "headers") {
+					let pkg_configs = "";
+					for (let pkg_source of dep.packages){
+						pkg_configs += " " +  pkgConfig.info(pkg_source,pkgConfig.module_info.libs);
+					}
+					console.log(pkg_configs);
+				} else if (dep.source === "prebuilt") {
 					// iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+					let libraries = "";
+					for (let header of dep.libraries){
+						libraries += " " +normalize_path( path.join( native_configuration.source_path , header));
+					}
+
+					console.log(libraries);
 				} else if (dep.source === "source") {
 					// ignore, should be handled by "dependency" section
 				}
-				console.log(dep.libraries);
 			}
 		}
 
@@ -111,3 +137,7 @@ logger.log_to_file("nncu." + timestamp + ".log");
 		process.exit(1);
 	}
 })();
+
+function normalize_path(filepath : string) : string{
+	return filepath.split(/\/|\\/).join("/");
+}
