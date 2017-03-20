@@ -1,6 +1,8 @@
 import fs = require("fs");
 import strip_json_comments = require("strip-json-comments");
 
+export const NATIVE_GYP_FILENAME = "native_gyp.json";
+
 export interface IPrecompiledSource {
 	arch: string;
 	platform: string;
@@ -25,16 +27,20 @@ interface IDependency {
 	sources: Array<string | ISource>;
 }
 
-interface INativeGyp {
+export interface INativeGyp {
 	dependencies: { [dependencyId: string]: IDependency };
 }
 
-export function read_native_gyp(filename: string): INativeGyp {
-	if (!fs.existsSync(filename)) {
+export function exists(): boolean {
+	return fs.existsSync(NATIVE_GYP_FILENAME);
+}
+
+export function read(): INativeGyp {
+	if (!fs.existsSync(NATIVE_GYP_FILENAME)) {
 		throw new Error("file not found");
 	}
 
-	let file = fs.readFileSync(filename).toString("utf8");
+	let file = fs.readFileSync(NATIVE_GYP_FILENAME).toString("utf8");
 	file = strip_json_comments(file, { whitespace: true });
-	return <INativeGyp> JSON.parse(file);
+	return <INativeGyp>JSON.parse(file);
 }

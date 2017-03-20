@@ -2,10 +2,13 @@
 
 import fs = require("fs");
 import commander = require("commander");
-import * as detection from "./detection_utilities";
-import * as nativeConfiguration from "./native-configuration-accessor";
-import { node_package } from "./package-accessor";
-import * as pkgConfig from "./pkg-config-accessor";
+import * as nativeConfiguration from "./accessors/native-configuration-accessor";
+import * as nativeGyp from "./accessors/native-gyp-accessor";
+import { node_package } from "./accessors/package-accessor";
+import * as pkgConfig from "./accessors/pkg-config-accessor";
+import * as dependencyEngine from "./engine/dependency-engine";
+import * as detection from "./utilities/detection_utilities";
+import * as logger from "./utilities/logger";
 
 // return data for gyp configuration
 // read "native_configuration.json"
@@ -42,16 +45,28 @@ commander
 	.option("-l, --libs [name]", "retrieve libraries by name")
 	.parse(process.argv);
 
+let timestamp = new Date().getTime().toString();
+logger.log_to_file("nncu." + timestamp + ".log");
+
 (async () => {
 	try {
+		if (!nativeGyp.exists()) {
+			logger.error(nativeGyp.NATIVE_GYP_FILENAME, "not found, nothing to do");
+			process.exit(0);
+		}
+
 		let native_configuration: nativeConfiguration.INativeConfiguration = await nativeConfiguration.load(nativeConfiguration.NATIVE_CONFIGURATION_FILE);
+		let native_gyp = nativeGyp.read();
+
+		let dependencies = (await dependencyEngine.parse_dependencies(native_gyp, native_configuration)).dependencies;
 
 		if (commander["sourcePath"]) {
 			default_source_path = commander["sourcePath"];
 		}
 
 		if (commander["dependency"]) {
-			let dep = native_configuration.dependencies[commander["dependency"]];
+			logger.log_to_console(false);
+			let dep = dependencies[commander["dependency"]];
 			if (dep) {
 				if (dep.source === "source") {
 					console.log(dep.gyp_file + ":" + dep.gyp_target);
@@ -60,37 +75,39 @@ commander
 		}
 
 		if (commander["headers"]) {
-			let dep = native_configuration.dependencies[commander["headers"]];
+			logger.log_to_console(false);
+			let dep = dependencies[commander["headers"]];
 			if (dep) {
 				if (dep.source === "pkg-config") {
-					//iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
-					//pkgConfig.info("")
+					// iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
+					// pkgConfig.info("")
 				} else if (dep.source === "headers") {
-					//iterate through headers in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+					// iterate through headers in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
 				} else if (dep.source === "source") {
-					//ignore, should be handled by "dependency" section
+					// ignore, should be handled by "dependency" section
 				}
 				console.log(dep.headers);
 			}
 		}
 
 		if (commander["libs"]) {
-			let dep = native_configuration.dependencies[commander["libs"]];
+			logger.log_to_console(false);
+			let dep = dependencies[commander["libs"]];
 			if (dep) {
 				if (dep.source === "pkg-config") {
-					//iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
-					//pkgConfig.info("")
+					// iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
+					// pkgConfig.info("")
 				} else if (dep.source === "headers") {
-					//iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+					// iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
 				} else if (dep.source === "source") {
-					//ignore, should be handled by "dependency" section
+					// ignore, should be handled by "dependency" section
 				}
 				console.log(dep.libraries);
 			}
 		}
 
 	} catch (e) {
-		console.log("error executing dependency tracker", e, e.stackTrace);
+		logger.error("error executing dependency tracker", e, e.stackTrace);
 		process.exit(1);
 	}
 })();

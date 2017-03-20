@@ -1,10 +1,4 @@
-import * as ProgressBar from "progress";
-import url = require("url");
-import fs = require("fs");
-import https = require("https");
-import http = require("http");
-
-import { cancel, download } from "./download-accessor";
+import { cancel, download } from "./accessors/download-accessor";
 
 // console.log(process.argv);
 

@@ -4,6 +4,7 @@ import fs = require("fs");
 import https = require("https");
 import http = require("http");
 import path = require("path");
+import * as logger from "../utilities/logger";
 
 interface IDownloadItem {
 	downloadurl: string;
@@ -104,7 +105,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 		let filesize = 0;
 
 		process.on("SIGINT", () => {
-			console.log("Caught interrupt signal");
+			logger.error("Caught interrupt signal");
 
 			file.end();
 			fs.unlink(filename);
@@ -141,8 +142,6 @@ export function download(downloadurl: string, filename: string, displayProgress:
 			_file_streams[downloadurl].filestream = file;
 			_file_streams[downloadurl].length = len;
 
-			console.log();
-
 			res.on("data", (chunk) => {
 				if (!_file_streams[downloadurl]) {
 					reject("download cancelled");
@@ -167,7 +166,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 				if (file != null) {
 					file.end();
 				}
-				console.log("downloaded ", filesize + "bytes");
+				logger.info("downloaded " , filesize , "bytes");
 
 				if (filesize === _file_streams[downloadurl].length) {
 					resolve(true);

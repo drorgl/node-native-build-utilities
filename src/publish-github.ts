@@ -2,8 +2,9 @@
 
 // publish to github
 import program = require("commander");
-import { GitHubAccessor, IAsset } from "./github-accessor";
-import { node_package } from "./package-accessor";
+import { GitHubAccessor, IAsset } from "./accessors/github-accessor";
+import { node_package } from "./accessors/package-accessor";
+import * as logger from "./utilities/logger";
 
 let github_accessor = new GitHubAccessor();
 
@@ -19,7 +20,7 @@ program
 	// console.log(program);
 
 	if (program["listAssets"]) {
-		console.log("list assets", program["listAssets"]);
+		logger.debug("list assets", program["listAssets"]);
 		let parameters = program["listAssets"].split("/");
 		let owner = parameters[0];
 		let repo = parameters[1];
@@ -33,11 +34,11 @@ program
 				url: v.url
 			};
 		});
-		console.log(merged);
+		logger.debug(merged);
 	}
 
 	if (program["download"] && program["download"].length) {
-		console.log("download", program["download"]);
+		logger.debug("download", program["download"]);
 		let parameters = program["download"].split("/");
 		let owner = parameters[0];
 		let repo = parameters[1];
@@ -48,9 +49,9 @@ program
 		let filtered_assets = releases.filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
 		let asset = [].concat.apply([], filtered_assets).find((v: IAsset) => v.name === filename);
 		if (asset) {
-			console.log("downloading " + asset.url);
+			logger.debug("downloading " + asset.url);
 		} else {
-			console.log("asset not found");
+			logger.error("asset not found");
 		}
 	}
 
@@ -66,9 +67,9 @@ program
 				url: v.url
 			};
 		});
-		console.log(filtered_releases);
+		logger.debug(filtered_releases);
 	}
 	if (program["uploadAsset"]) {
-		console.log("upload asset", program["uploadAssets"]);
+		logger.debug("upload asset", program["uploadAssets"]);
 	}
 })();

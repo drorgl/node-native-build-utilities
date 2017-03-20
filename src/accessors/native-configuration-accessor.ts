@@ -26,7 +26,7 @@ export interface INativeConfiguration {
 	toolset: string;
 	toolset_version: string;
 	source_path: string;
-	dependencies: IDependencies;
+	dependencies?: IDependencies;
 }
 
 export async function save(filename: string, configuration: INativeConfiguration) {

@@ -4,7 +4,7 @@
             "node"
         ],
         "outDir": "dist",
-         "removeComments": false,
+        "removeComments": false,
         "sourceMap": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
@@ -16,5 +16,8 @@
         "typeRoots": [
             "node_modules/@types"
         ]
-    }
+    },
+    "include": [
+        "src/**/*"
+    ]
 }

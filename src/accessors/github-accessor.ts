@@ -4,6 +4,7 @@ import path = require("path");
 import app_root_path = require("app-root-path");
 import promptly = require("promptly");
 import ini = require("ini");
+import * as logger from "../utilities/logger";
 
 import { cancel, download } from "./download-accessor";
 
@@ -207,7 +208,7 @@ export class GitHubAccessor {
 			try {
 				this._authentication = JSON.parse(fs.readFileSync(this._auth_cache_filename).toString("utf8"));
 			} catch (e) {
-				console.warn(`unable to parse authentication cache file ${AuthenticationFilename}, please delete and retry`);
+				logger.warn(`unable to parse authentication cache file ${AuthenticationFilename}, please delete and retry`);
 			}
 
 			if (this._authentication) {
@@ -215,7 +216,7 @@ export class GitHubAccessor {
 					this._authenticated = true;
 					return true;
 				} else {
-					console.info("cached authentication failed");
+					logger.info("cached authentication failed");
 					this._authentication = null;
 				}
 			}
@@ -245,14 +246,14 @@ export class GitHubAccessor {
 			v.note === THIS_PACKAGE_NAME && (v.scopes.indexOf("public_repo") !== -1)
 		);
 		if (authorization) {
-			console.log("existing authorization found, but we can't use it since there is no way to get its token");
+			logger.info("existing authorization found, but we can't use it since there is no way to get its token");
 			let should_recreate = await this.confirm("delete current token and recreate?");
 			if (should_recreate) {
 				let success = await this._github.authorization.delete({ id: authorization.id.toString() });
 				if (success) {
-					console.log("deleted successfully");
+					logger.info("deleted successfully");
 				} else {
-					console.log("failed to delete token");
+					logger.error("failed to delete token");
 					return false;
 				}
 			}
@@ -323,7 +324,7 @@ export class GitHubAccessor {
 	private read_default_email() {
 		const config_filename = path.join(app_root_path.path, ".git/", "./config");
 		if (!fs.existsSync(config_filename)) {
-			console.info("git is not configured for this repository");
+			logger.warn("git is not configured for this repository");
 			return "";
 		}
 		let gitconfig = ini.parse(fs.readFileSync(config_filename, "utf-8"));
@@ -331,14 +332,14 @@ export class GitHubAccessor {
 			return gitconfig.user.email;
 		}
 
-		console.info("email not found in git");
+		logger.warn("email not found in git");
 		return "";
 	}
 
 	private save_token(token: github.AccessToken) {
-		fs.writeFile(this._auth_cache_filename, JSON.stringify(token,null,"\t"), (err: NodeJS.ErrnoException) => {
+		fs.writeFile(this._auth_cache_filename, JSON.stringify(token, null, "\t"), (err: NodeJS.ErrnoException) => {
 			if (err) {
-				console.error("unable to save token, read only?");
+				logger.error("unable to save token, read only?");
 			}
 		});
 		this._authentication = token;
@@ -351,7 +352,7 @@ export class GitHubAccessor {
 					reject(err);
 					return;
 				}
-				resolve(<boolean> <any> value);
+				resolve(<boolean><any>value);
 			});
 		});
 	}
