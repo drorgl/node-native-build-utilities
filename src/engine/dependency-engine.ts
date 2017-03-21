@@ -59,16 +59,22 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 
 				if (failed_packages === false) {
 					let packages = [];
+					let packages_includes = [];
+					let packages_libraries = [];
 					for (let package_name in dependency.pkgconfig) {
 						if (!dependency.pkgconfig.hasOwnProperty(package_name)) {
 							continue;
 						}
 						packages.push(package_name);
+						packages_includes.push(pkg_config.info(package_name, pkg_config.module_info.cflags));
+						packages_libraries.push(pkg_config.info(package_name, pkg_config.module_info.libs));
 					}
 
 					dependencies_information.dependencies[dependency_name] = {
 						source: "pkg-config",
-						packages
+						packages,
+						pkg_includes: packages_includes,
+						pkg_libraries: packages_libraries
 					};
 				}
 			}
@@ -136,8 +142,8 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 
 			dependencies_information.dependencies[dependency_name] = {
 				source: "prebuilt",
-				headers: precompiled_header_paths,
-				libraries: precompiled_library_paths
+				pre_headers: precompiled_header_paths,
+				pre_libraries: precompiled_library_paths
 			};
 		}
 
@@ -238,8 +244,8 @@ async function extract_source(source: nativeGyp.IPrecompiledSource, source_path:
 }
 
 export function gyp_source_parse(source: string | nativeGyp.ISource): nativeGyp.ISource {
-	let src = <nativeGyp.ISource>source;
-	let ssource = <string>source;
+	let src = <nativeGyp.ISource> source;
+	let ssource = <string> source;
 
 	if (!src.source) {
 		let source_gyp_index = ssource.lastIndexOf("@");
@@ -279,7 +285,7 @@ export function gyp_source_parse(source: string | nativeGyp.ISource): nativeGyp.
 async function git_clone(source: string | nativeGyp.ISource, cwd: string) {
 	let src = gyp_source_parse(source);
 
-	let gitsrc = (src.source) ? src.source : <string>source;
+	let gitsrc = (src.source) ? src.source : <string> source;
 
 	let repo_path = path.join(cwd, path.basename(gitsrc, path.extname(gitsrc)));
 

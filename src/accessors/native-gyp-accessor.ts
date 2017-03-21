@@ -42,5 +42,5 @@ export function read(): INativeGyp {
 
 	let file = fs.readFileSync(NATIVE_GYP_FILENAME).toString("utf8");
 	file = strip_json_comments(file, { whitespace: true });
-	return <INativeGyp>JSON.parse(file);
+	return <INativeGyp> JSON.parse(file);
 }

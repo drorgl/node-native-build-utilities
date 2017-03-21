@@ -11,11 +11,13 @@ export interface IConfiguredDependency {
 	source: string;
 
 	packages?: string[];
+	pkg_includes?: string[];
+	pkg_libraries?: string[];
 
 	gyp_sources?: Array<string | nativeGyp.ISource>;
 
-	headers?: string[];
-	libraries?: string[];
+	pre_headers?: string[];
+	pre_libraries?: string[];
 }
 
 export interface IDependencies {

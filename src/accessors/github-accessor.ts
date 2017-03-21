@@ -352,7 +352,7 @@ export class GitHubAccessor {
 					reject(err);
 					return;
 				}
-				resolve(<boolean><any>value);
+				resolve(<boolean> <any> value);
 			});
 		});
 	}
