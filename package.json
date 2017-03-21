@@ -5,7 +5,8 @@
   "bin": {
     "nnbu-dependency": "dist/dependency.js",
     "nnbu-configure": "dist/native_configure.js",
-    "nnbu-publish": "dist/publish-github.js"
+    "nnbu-publish": "dist/publish-github.js",
+    "nnbu-run" : "dist/run.js"
   },
   "main": "index.js",
   "scripts": {

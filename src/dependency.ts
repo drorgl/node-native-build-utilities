@@ -37,6 +37,8 @@ commander
 	.option("-d, --dependency [name]", "retrieve dependency by name")
 	.option("-h, --headers [name]", "retrieve headers by name")
 	.option("-l, --libs [name]", "retrieve libraries by name")
+	.option("-f, --lib-fix", "appends .. before the library path, its a workaround to a bug in node-gyp where library root is different from includes root")
+	.option("-c, --copy [name]", "retrieve files to copy to output")
 	.option("-g, --logs", "dump logs to nnbu.*.log")
 	.parse(process.argv);
 
@@ -45,8 +47,8 @@ if (commander["logs"]) {
 	logger.log_to_file("nncu." + timestamp + ".log");
 }
 
-if (commander["dependency"] || commander["headers"] || commander["libs"]) {
-	// logger.log_to_console(false);
+if (commander["dependency"] || commander["headers"] || commander["libs"] || commander["copy"]) {
+	logger.log_to_console(false);
 }
 
 logger.info("arguments", process.argv);
@@ -117,10 +119,29 @@ logger.info("arguments", process.argv);
 					// iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
 					let libraries = "";
 					for (let header of dep.pre_libraries) {
-						libraries += " " + normalize_path(path.join(native_configuration.source_path, header));
+						libraries += " " + normalize_path(path.join((commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
 					}
 
 					console.log(libraries);
+				} else if (dep.source === "source") {
+					// ignore, should be handled by "dependency" section
+				}
+			}
+		}
+
+		if (commander["copy"]) {
+			let dep = native_configuration.dependencies[commander["copy"]];
+			if (dep) {
+				if (dep.source === "pkg-config") {
+					// nothing to do
+				} else if (dep.source === "prebuilt") {
+					// iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
+					let files = "";
+					for (let file of dep.copy) {
+						files += " " + normalize_path(path.join(native_configuration.source_path, file));
+					}
+
+					console.log(files);
 				} else if (dep.source === "source") {
 					// ignore, should be handled by "dependency" section
 				}

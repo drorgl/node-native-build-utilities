@@ -129,21 +129,31 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			// TODO: download/extract all prebuilt binaries
 			let precompiled_header_paths = [];
 			let precompiled_library_paths = [];
+			let precompiled_file_copy: string[] = [];
 
 			for (let source of precompiled_header_sources) {
 				dependencies_information.precompiled_sources.push(source);
 				precompiled_header_paths.push(parse_precompiled_source(source).path);
+
+				if (source.copy) {
+					precompiled_file_copy.push(parse_precompiled_copy(source).path);
+				}
 			}
 
 			for (let source of precompiled_library_sources) {
 				dependencies_information.precompiled_sources.push(source);
 				precompiled_library_paths.push(parse_precompiled_source(source).path);
+
+				if (source.copy) {
+					precompiled_file_copy.push(parse_precompiled_copy(source).path);
+				}
 			}
 
 			dependencies_information.dependencies[dependency_name] = {
 				source: "prebuilt",
 				pre_headers: precompiled_header_paths,
-				pre_libraries: precompiled_library_paths
+				pre_libraries: precompiled_library_paths,
+				copy: precompiled_file_copy
 			};
 		}
 
@@ -194,15 +204,19 @@ export async function clone_git_sources(git_repositories: Array<string | nativeG
 	}
 }
 
-async function download_source(source: nativeGyp.IPrecompiledSource, source_path: string) {
-	let fileurl = source.source.substr(0, source.source.lastIndexOf("@"));
-	let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
+// unique download flag
+let _download_handled: { [file: string]: boolean } = {};
 
+async function download_file(fileurl: string, filename: string) {
+	if (_download_handled[fileurl + filename]) {
+		return;
+	}
 	if (fs.existsSync(filename)) {
 		let filesize = await download_size(fileurl);
 		let fileinfo = fs.statSync(filename);
 		if (fileinfo.size === filesize) {
 			logger.debug("file", filename, "already exists with the same size, assuming its the same");
+			_download_handled[fileurl + filename] = true;
 			return;
 		} else {
 			logger.info("file", filename, "size is different from download url", fileinfo.size, filesize, "downloading again");
@@ -211,6 +225,20 @@ async function download_source(source: nativeGyp.IPrecompiledSource, source_path
 		logger.info("downloading", fileurl, "into", filename);
 	}
 	await download(fileurl, filename, true);
+	_download_handled[fileurl + filename] = true;
+}
+
+async function download_source(source: nativeGyp.IPrecompiledSource, source_path: string) {
+	let fileurl = source.source.substr(0, source.source.lastIndexOf("@"));
+	let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
+
+	// todo: download the copy as well
+	await download_file(fileurl, filename);
+	if (source.copy) {
+		fileurl = source.copy.substr(0, source.copy.lastIndexOf("@"));
+		filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
+		await download_file(fileurl, filename);
+	}
 }
 
 interface IPrecompiledSourceParsed {
@@ -218,7 +246,26 @@ interface IPrecompiledSourceParsed {
 	path: string;
 }
 
-function parse_precompiled_source(source: nativeGyp.IPrecompiledSource) {
+function parse_precompiled_copy(source: nativeGyp.IPrecompiledSource): IPrecompiledSourceParsed {
+	if (!source.copy) {
+		return null;
+	}
+
+	let file_url_index = source.copy.lastIndexOf("@");
+	if (file_url_index === -1) {
+		return {
+			url: source.copy,
+			path: ""
+		};
+	}
+
+	return {
+		url: source.copy.substr(0, file_url_index),
+		path: source.copy.substr(file_url_index + 1)
+	};
+}
+
+function parse_precompiled_source(source: nativeGyp.IPrecompiledSource): IPrecompiledSourceParsed {
 	let file_url_index = source.source.lastIndexOf("@");
 	if (file_url_index === -1) {
 		return {
@@ -233,14 +280,33 @@ function parse_precompiled_source(source: nativeGyp.IPrecompiledSource) {
 	};
 }
 
+let _extraction_handled: { [file: string]: boolean } = {};
+
 async function extract_source(source: nativeGyp.IPrecompiledSource, source_path: string) {
 	let parsed = parse_precompiled_source(source);
 
 	let fileurl = parsed.url;
 	let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
 
+	// todo: extract copy as well
 	logger.info("extracting", filename, "into", source_path);
-	await extractFull(filename, source_path);
+	if (!_extraction_handled[filename + source_path]) {
+		await extractFull(filename, source_path);
+		_extraction_handled[filename + source_path] = true;
+	}
+
+	if (source.copy) {
+		parsed = parse_precompiled_copy(source);
+
+		fileurl = parsed.url;
+		filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
+
+		logger.info("extracting", filename, "into", source_path);
+		if (!_extraction_handled[filename + source_path]) {
+			await extractFull(filename, source_path);
+			_extraction_handled[filename + source_path] = true;
+		}
+	}
 }
 
 export function gyp_source_parse(source: string | nativeGyp.ISource): nativeGyp.ISource {

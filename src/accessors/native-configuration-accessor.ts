@@ -18,6 +18,7 @@ export interface IConfiguredDependency {
 
 	pre_headers?: string[];
 	pre_libraries?: string[];
+	copy?: string[];
 }
 
 export interface IDependencies {
