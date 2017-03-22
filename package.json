@@ -6,11 +6,11 @@
     "nnbu-dependency": "dist/dependency.js",
     "nnbu-configure": "dist/native_configure.js",
     "nnbu-publish": "dist/publish-github.js",
-    "nnbu-run" : "dist/run.js"
+    "nnbu-run": "dist/run.js"
   },
   "main": "index.js",
   "scripts": {
-	"prepublish":"tsc",
+    "prepublish": "tsc",
     "build": "tsc",
     "prepare": "ts-node native_configure.ts",
     "publish-github": "ts-node publish-github.ts",
@@ -52,6 +52,7 @@
     "@types/semver": "^5.3.31",
     "@types/strip-json-comments": "0.0.28",
     "app-root-path": "^2.0.1",
+    "bluebird": "^3.5.0",
     "commander": "^2.9.0",
     "github": "^9.1.0",
     "ini": "^1.3.4",
