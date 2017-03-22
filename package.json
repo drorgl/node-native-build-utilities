@@ -10,7 +10,7 @@
   },
   "main": "index.js",
   "scripts": {
-	"preinstall":"tsc",
+	"prepublish":"tsc",
     "build": "tsc",
     "prepare": "ts-node native_configure.ts",
     "publish-github": "ts-node publish-github.ts",
