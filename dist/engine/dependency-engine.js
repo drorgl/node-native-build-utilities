@@ -418,16 +418,24 @@ function git_clone(source, cwd) {
                     src = gyp_source_parse(source);
                     gitsrc = (src.source) ? src.source : source;
                     repo_path = path.join(cwd, path.basename(gitsrc, path.extname(gitsrc)));
-                    if (!!fs.existsSync(repo_path)) return [3 /*break*/, 2];
+                    if (!!fs.existsSync(repo_path)) return [3 /*break*/, 5];
                     logger.info("cloning git", gitsrc, "into", cwd);
-                    return [4 /*yield*/, gitAccessor.git_clone(gitsrc, cwd, src.branch)];
+                    return [4 /*yield*/, gitAccessor.git_clone(gitsrc, cwd)];
                 case 1:
                     _a.sent();
-                    return [3 /*break*/, 3];
+                    if (!src.branch) return [3 /*break*/, 3];
+                    return [4 /*yield*/, gitAccessor.git_checkout(path.join(cwd, repo_path), src.branch)];
                 case 2:
-                    logger.debug("repo", gitsrc, "already exists, skipping");
+                    _a.sent();
                     _a.label = 3;
-                case 3: return [2 /*return*/];
+                case 3: return [4 /*yield*/, gitAccessor.git_submodule_update(path.join(cwd, repo_path))];
+                case 4:
+                    _a.sent();
+                    return [3 /*break*/, 6];
+                case 5:
+                    logger.debug("repo", gitsrc, "already exists, skipping");
+                    _a.label = 6;
+                case 6: return [2 /*return*/];
             }
         });
     });
