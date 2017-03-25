@@ -359,10 +359,10 @@ async function git_clone(source: string | nativeGyp.ISource, cwd: string) {
 		logger.info("cloning git", gitsrc, "into", cwd);
 		await gitAccessor.git_clone(gitsrc, cwd);
 		if (src.branch) {
-			await gitAccessor.git_checkout(path.join(cwd, repo_path), src.branch);
+			await gitAccessor.git_checkout(repo_path, src.branch);
 		}
 
-		await gitAccessor.git_submodule_update(path.join(cwd, repo_path));
+		await gitAccessor.git_submodule_update(repo_path);
 	} else {
 		logger.debug("repo", gitsrc, "already exists, skipping");
 	}

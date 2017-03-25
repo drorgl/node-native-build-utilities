@@ -424,11 +424,11 @@ function git_clone(source, cwd) {
                 case 1:
                     _a.sent();
                     if (!src.branch) return [3 /*break*/, 3];
-                    return [4 /*yield*/, gitAccessor.git_checkout(path.join(cwd, repo_path), src.branch)];
+                    return [4 /*yield*/, gitAccessor.git_checkout(repo_path, src.branch)];
                 case 2:
                     _a.sent();
                     _a.label = 3;
-                case 3: return [4 /*yield*/, gitAccessor.git_submodule_update(path.join(cwd, repo_path))];
+                case 3: return [4 /*yield*/, gitAccessor.git_submodule_update(repo_path)];
                 case 4:
                     _a.sent();
                     return [3 /*break*/, 6];
