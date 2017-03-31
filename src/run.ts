@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import {normalize_path} from "./utilities/promisified_fs";
+
 console.log(process.argv);
 
 import child_process = require("child_process");
@@ -10,10 +12,3 @@ let args = process.argv.slice(3);
 console.log(command, args);
 let stat = spawnSync(command, args, { shell: true, stdio: "inherit" });
 process.exit(stat.status);
-
-function normalize_path(filepath: string): string {
-	if (process.platform === "win32") {
-		return filepath.split(/\/|\\/).join("\\");
-	}
-	return filepath;
-}

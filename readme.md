@@ -38,3 +38,5 @@ basic usage:
 repeat as needed
 
 					
+TODO:
+	Add minimal gcc version, prevent compilation if detected version is less, do the same for msbuild (?)

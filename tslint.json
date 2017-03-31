@@ -8,7 +8,8 @@
         "indent": [true,"tabs"],
         "max-line-length": [false],
         "no-string-literal": false,
-        "class-name": false
+        "class-name": false,
+        "no-namespace": [false]
     },
     "extends": "tslint:recommended"
 }

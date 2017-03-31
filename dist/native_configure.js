@@ -84,12 +84,14 @@ if (!detection.z7_version) {
     process.exit(1);
 }
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var native_gyp, platforms, selected_platform, architectures, selected_arch, toolsets, selected_toolset, selected_toolset_version, configuration, configured_dependencies, e_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var native_gyps, platforms, selected_platform, architectures, selected_arch, toolsets, selected_toolset, selected_toolset_version, configuration, configured_dependencies, _i, native_gyps_1, native_gyp, _a, _b, _c, e_1;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _a.trys.push([0, 7, , 8]);
-                native_gyp = nativeGyp.read();
+                _d.trys.push([0, 11, , 12]);
+                return [4 /*yield*/, nativeGyp.read_all_native_gyps("./")];
+            case 1:
+                native_gyps = _d.sent();
                 platforms = ["darwin", "freebsd", "linux", "sunos", "win32"];
                 selected_platform = commander["platform"];
                 if (platforms.indexOf(selected_platform) === -1) {
@@ -125,36 +127,49 @@ if (!detection.z7_version) {
                     toolset_version: selected_toolset_version,
                     source_path: default_source_path
                 };
+                configured_dependencies = void 0;
+                _i = 0, native_gyps_1 = native_gyps;
+                _d.label = 2;
+            case 2:
+                if (!(_i < native_gyps_1.length)) return [3 /*break*/, 5];
+                native_gyp = native_gyps_1[_i];
+                _b = (_a = Object).assign;
+                _c = [configured_dependencies || {}];
                 return [4 /*yield*/, dependencyEngine.parse_dependencies(native_gyp, configuration)];
-            case 1:
-                configured_dependencies = _a.sent();
+            case 3:
+                configured_dependencies = _b.apply(_a, _c.concat([_d.sent()]));
+                _d.label = 4;
+            case 4:
+                _i++;
+                return [3 /*break*/, 2];
+            case 5:
                 configuration.dependencies = configured_dependencies.dependencies;
                 logger.info("configuration:", configuration);
-                if (!(configured_dependencies.precompiled_sources, default_source_path && configured_dependencies.precompiled_sources, default_source_path.length > 0)) return [3 /*break*/, 3];
+                if (!(configured_dependencies.precompiled_sources, default_source_path && configured_dependencies.precompiled_sources, default_source_path.length > 0)) return [3 /*break*/, 7];
                 logger.info("preparing precompiled dependencies..");
                 return [4 /*yield*/, dependencyEngine.download_precompiled_sources(configured_dependencies.precompiled_sources, default_source_path)];
-            case 2:
-                _a.sent();
+            case 6:
+                _d.sent();
                 logger.info("done");
-                _a.label = 3;
-            case 3:
-                if (!(configured_dependencies.git_repositories && configured_dependencies.git_repositories.length)) return [3 /*break*/, 5];
+                _d.label = 7;
+            case 7:
+                if (!(configured_dependencies.git_repositories && configured_dependencies.git_repositories.length)) return [3 /*break*/, 9];
                 logger.info("preparing source dependencies..");
                 return [4 /*yield*/, dependencyEngine.clone_git_sources(configured_dependencies.git_repositories, default_source_path)];
-            case 4:
-                _a.sent();
+            case 8:
+                _d.sent();
                 logger.info("done");
-                _a.label = 5;
-            case 5: return [4 /*yield*/, nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration)];
-            case 6:
-                _a.sent();
-                return [3 /*break*/, 8];
-            case 7:
-                e_1 = _a.sent();
+                _d.label = 9;
+            case 9: return [4 /*yield*/, nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration)];
+            case 10:
+                _d.sent();
+                return [3 /*break*/, 12];
+            case 11:
+                e_1 = _d.sent();
                 logger.error("unable to configure", e_1, e_1.stackTrace);
                 process.exit(1);
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 12];
+            case 12: return [2 /*return*/];
         }
     });
 }); })();

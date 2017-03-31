@@ -60,7 +60,9 @@ if (!detection.z7_version) {
 
 (async () => {
 	try {
-		let native_gyp = nativeGyp.read();
+		// TODO: read ALL native gyps in current package and node_modules
+		let native_gyps = await nativeGyp.read_all_native_gyps("./");
+		// let native_gyp = await nativeGyp.read();
 
 		// platform win/linux
 		const platforms = ["darwin", "freebsd", "linux", "sunos", "win32"];
@@ -107,7 +109,11 @@ if (!detection.z7_version) {
 			source_path: default_source_path
 		};
 
-		let configured_dependencies = await dependencyEngine.parse_dependencies(native_gyp, configuration);
+		let configured_dependencies: dependencyEngine.IDependenciesInformation;
+
+		for (let native_gyp of native_gyps) {
+			configured_dependencies = Object.assign(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
+		}
 		configuration.dependencies = configured_dependencies.dependencies;
 
 		logger.info("configuration:", configuration);
