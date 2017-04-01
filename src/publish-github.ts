@@ -2,11 +2,11 @@
 
 // publish to github
 import program = require("commander");
-import { GitHubAccessor, IAsset } from "./accessors/github-accessor";
+import * as githubAccessor from "./accessors/github-accessor";
 import { node_package } from "./accessors/package-accessor";
 import * as logger from "./utilities/logger";
 
-let github_accessor = new GitHubAccessor();
+let github_accessor = new githubAccessor.GitHubAccessor();
 
 program
 	.version(node_package.version)
@@ -26,8 +26,8 @@ program
 		let repo = parameters[1];
 		let tag = (parameters.length > 1) ? parameters[2] : null;
 		let releases = await github_accessor.get_releases(owner, repo);
-		let filtered_assets = releases.filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
-		let merged = [].concat.apply([], filtered_assets).map((v: IAsset) => {
+		let filtered_assets = (releases.data as githubAccessor.IRelease[]) .filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
+		let merged = [].concat.apply([], filtered_assets).map((v: githubAccessor.IAsset) => {
 			return {
 				name: v.name,
 				size: v.size,
@@ -46,8 +46,8 @@ program
 		let filename = parameters[3];
 
 		let releases = await github_accessor.get_releases(owner, repo);
-		let filtered_assets = releases.filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
-		let asset = [].concat.apply([], filtered_assets).find((v: IAsset) => v.name === filename);
+		let filtered_assets = (releases.data as githubAccessor.IRelease[]).filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
+		let asset = [].concat.apply([], filtered_assets).find((v: githubAccessor.IAsset) => v.name === filename);
 		if (asset) {
 			logger.debug("downloading " + asset.url);
 		} else {
@@ -61,7 +61,7 @@ program
 		let repo = parameters[1];
 		let tag = (parameters.length > 1) ? parameters[2] : null;
 		let releases = await github_accessor.get_releases(owner, repo);
-		let filtered_releases = releases.filter((v) => (tag) ? v.tag_name === tag : true).map((v) => {
+		let filtered_releases = (releases.data as githubAccessor.IRelease[]).filter((v) => (tag) ? v.tag_name === tag : true).map((v) => {
 			return {
 				name: v.name,
 				url: v.url

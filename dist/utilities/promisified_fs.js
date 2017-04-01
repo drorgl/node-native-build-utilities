@@ -49,6 +49,21 @@ function exists(file) {
 }
 exports.exists = exists;
 exports.readFile = bluebird.promisify(fs.readFile);
+function writeFile(filename, encoding, data) {
+    return new Promise(function (resolve, reject) {
+        fs.writeFile(filename, data, { encoding: encoding }, function (err) {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve(true);
+            }
+        });
+    });
+}
+exports.writeFile = writeFile;
+exports.mkdtemp = bluebird.promisify(fs.mkdtemp);
+exports.unlink = bluebird.promisify(fs.unlink);
 function normalize_path(filepath) {
     if (process.platform === "win32") {
         return filepath.split(/\/|\\/).join("\\");
@@ -119,4 +134,21 @@ function filter_glob(pattern, files) {
     });
 }
 exports.filter_glob = filter_glob;
+// http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
+function human_file_size(bytes, si) {
+    var thresh = si ? 1000 : 1024;
+    if (Math.abs(bytes) < thresh) {
+        return bytes + " B";
+    }
+    var units = si
+        ? ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+        : ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
+    var u = -1;
+    do {
+        bytes /= thresh;
+        ++u;
+    } while (Math.abs(bytes) >= thresh && u < units.length - 1);
+    return bytes.toFixed(1) + " " + units[u];
+}
+exports.human_file_size = human_file_size;
 //# sourceMappingURL=promisified_fs.js.map

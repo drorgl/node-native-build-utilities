@@ -11,6 +11,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "install": "tsc",
     "prepublish": "tsc",
     "build": "tsc",
     "prepare": "ts-node native_configure.ts",

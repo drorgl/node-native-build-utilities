@@ -1,7 +1,7 @@
 import * as github from "github";
-import fs = require("fs");
+import * as pfs from "../utilities/promisified_fs";
 import path = require("path");
-import app_root_path = require("app-root-path");
+// import app_root_path = require("app-root-path");
 import promptly = require("promptly");
 import ini = require("ini");
 import * as logger from "../utilities/logger";
@@ -26,6 +26,11 @@ export interface IApplication {
 	name: string;
 	url: string;
 	client_id: string;
+}
+
+export interface IReply<T> {
+	data: T[] | T;
+	meta: { [meta_id: string]: string };
 }
 
 export interface IAuthorization {
@@ -193,8 +198,27 @@ export interface IRelease {
 	"assets": IAsset[];
 }
 
+export interface IErrorDetail {
+	resource: string;
+	code: string;
+	field: string;
+}
+
+export interface IErrorMessage {
+	message: string;
+	request_id: string;
+	documentation_url: string;
+	errors: IErrorDetail[];
+}
+
+export interface IError {
+	code: number;
+	status: string;
+	message: string;
+}
+
 export class GitHubAccessor {
-	private _auth_cache_filename = path.join(app_root_path.path, AuthenticationFilename);
+	private _auth_cache_filename = path.join(process.cwd(), AuthenticationFilename);
 	private _github = new github();
 	private _authentication: github.AccessToken;
 	private _authenticated = false;
@@ -204,32 +228,36 @@ export class GitHubAccessor {
 			return true;
 		}
 
-		if (fs.exists(this._auth_cache_filename)) {
+		console.log("checking existing file");
+		if (await pfs.exists(this._auth_cache_filename)) {
 			try {
-				this._authentication = JSON.parse(fs.readFileSync(this._auth_cache_filename).toString("utf8"));
+				this._authentication = JSON.parse(await pfs.readFile(this._auth_cache_filename, "utf8"));
 			} catch (e) {
 				logger.warn(`unable to parse authentication cache file ${AuthenticationFilename}, please delete and retry`);
 			}
+		}
 
-			if (this._authentication) {
-				if (await this.test_authentication()) {
-					this._authenticated = true;
-					return true;
-				} else {
-					logger.info("cached authentication failed");
-					this._authentication = null;
-				}
-			}
-
-			if (!this._authentication) {
-				// do console authentication
-				let success = await this.console_authentication();
-				if (success) {
-					this._authenticated = true;
-				}
-				return success;
+		console.log("testing authentication");
+		if (this._authentication) {
+			if (await this.test_authentication()) {
+				this._authenticated = true;
+				return true;
+			} else {
+				logger.info("cached authentication failed");
+				this._authentication = null;
 			}
 		}
+
+		console.log("checking console");
+		if (!this._authentication) {
+			// do console authentication
+			let success = await this.console_authentication();
+			if (success) {
+				this._authenticated = true;
+			}
+			return success;
+		}
+
 	}
 
 	public async console_authentication() {
@@ -241,8 +269,8 @@ export class GitHubAccessor {
 			username: useremail,
 			password
 		});
-		let authorizations: IAuthorization[] = await this._github.authorization.getAll({});
-		let authorization = authorizations.find((v) =>
+		let authorizations: IReply<IAuthorization> = await this._github.authorization.getAll({});
+		let authorization = (authorizations.data as IAuthorization[]).find((v) =>
 			v.note === THIS_PACKAGE_NAME && (v.scopes.indexOf("public_repo") !== -1)
 		);
 		if (authorization) {
@@ -259,12 +287,18 @@ export class GitHubAccessor {
 			}
 		}
 
-		let new_token: IAuthorization = await this._github.authorization.create({
+		let new_token: IReply<IAuthorization> = await this._github.authorization.create({
 			scopes: ["public_repo"],
 			note: THIS_PACKAGE_NAME
 		});
+
+		if (!new_token || !new_token.data) {
+			logger.error("failed to generate new authorization token");
+			return false;
+		}
+
 		this.save_token({
-			access_token: new_token.token
+			access_token: (new_token.data as IAuthorization).token
 		});
 		return true;
 	}
@@ -279,13 +313,13 @@ export class GitHubAccessor {
 		return results;
 	}
 
-	public async get_releases(owner: string, repo: string): Promise<IRelease[]> {
-		let results: IRelease[] = (await this._github.repos.getReleases({ owner, repo })).data;
+	public async get_releases(owner: string, repo: string): Promise<IReply<IRelease>> {
+		let results: IReply<IRelease> = (await this._github.repos.getReleases({ owner, repo })).data;
 		return results;
 	}
 
-	public async get_releases_by_tag(owner: string, repo: string, tag: string): Promise<IRelease[]> {
-		let results: IRelease[] = await this._github.repos.getReleaseByTag({ owner, repo, tag });
+	public async get_releases_by_tag(owner: string, repo: string, tag: string): Promise<IReply<IRelease>> {
+		let results: IReply<IRelease> = await this._github.repos.getReleaseByTag({ owner, repo, tag });
 		return results;
 	}
 
@@ -305,7 +339,7 @@ export class GitHubAccessor {
 	public async upload_release_asset(owner: string, repo: string, release_id: string, filePath: string, name: string, label?: string) {
 		await this.authenticate();
 
-		let asset: IAsset = await this._github.repos.uploadAsset({
+		let asset: IReply<IAsset> = await this._github.repos.uploadAsset({
 			owner, repo, id: release_id,
 			filePath, name, label
 		});
@@ -317,17 +351,27 @@ export class GitHubAccessor {
 		await download(downloadurl, localfilename, true);
 	}
 
-	private async test_authentication() {
-		return await this._github.authorization.check(this._authentication);
+	private async test_authentication(): Promise<boolean> {
+		try {
+			this._github.authenticate({
+				type: "oauth",
+				token: this._authentication.access_token
+			});
+			let user = await this._github.users.get({});
+			return (user != null);
+		} catch (e) {
+			logger.debug("unable to check authentication", e);
+			return false;
+		}
 	}
 
-	private read_default_email() {
-		const config_filename = path.join(app_root_path.path, ".git/", "./config");
-		if (!fs.existsSync(config_filename)) {
+	private async read_default_email() {
+		const config_filename = path.join(process.cwd(), ".git/", "./config");
+		if (!(await pfs.exists(config_filename))) {
 			logger.warn("git is not configured for this repository");
 			return "";
 		}
-		let gitconfig = ini.parse(fs.readFileSync(config_filename, "utf-8"));
+		let gitconfig = ini.parse(await pfs.readFile(config_filename, "utf-8"));
 		if (gitconfig && gitconfig.user && gitconfig.user.email) {
 			return gitconfig.user.email;
 		}
@@ -336,12 +380,11 @@ export class GitHubAccessor {
 		return "";
 	}
 
-	private save_token(token: github.AccessToken) {
-		fs.writeFile(this._auth_cache_filename, JSON.stringify(token, null, "\t"), (err: NodeJS.ErrnoException) => {
-			if (err) {
-				logger.error("unable to save token, read only?");
-			}
-		});
+	private async save_token(token: github.AccessToken) {
+		let success = await pfs.writeFile(this._auth_cache_filename, "utf8", JSON.stringify(token, null, "\t"));
+		if (!success) {
+			logger.error("unable to save token, read only?");
+		}
 		this._authentication = token;
 	}
 
@@ -358,8 +401,8 @@ export class GitHubAccessor {
 	}
 
 	private prompt_email(): Promise<string> {
-		return new Promise<string>((resolve, reject) => {
-			let defaultUsername = this.read_default_email();
+		return new Promise<string>(async (resolve, reject) => {
+			let defaultUsername = await this.read_default_email();
 
 			let emailValidator = (value: string): string => {
 				if (email_regex.test(value)) {
@@ -368,7 +411,7 @@ export class GitHubAccessor {
 				throw new Error(value + " is not an email");
 			};
 
-			promptly.prompt("Github username: ", {
+			promptly.prompt(`Github username${(defaultUsername) ? "(" + defaultUsername + ")" : ""}: `, {
 				default: defaultUsername,
 				trim: true,
 				validator: emailValidator,

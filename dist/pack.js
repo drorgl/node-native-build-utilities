@@ -41,6 +41,11 @@ var program = require("commander");
 var package_accessor_1 = require("./accessors/package-accessor");
 var archive = require("./utilities/archive");
 var logger = require("./utilities/logger");
+var pfs = require("./utilities/promisified_fs");
+var path = require("path");
+var os = require("os");
+var gitAccessor = require("./accessors/git-accessor");
+var githubAccessor = require("./accessors/github-accessor");
 // pack binary
 // pack sources
 // ignore what's .gitignore
@@ -52,28 +57,87 @@ program
     .parse(process.argv);
 console.log(program);
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var files, e_1;
+    var tag_version, filename, zipfile, files, gh, releases, release, result, e_1, err, e_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
-                if (!program["packSources"]) return [3 /*break*/, 3];
+                _a.trys.push([0, 19, , 20]);
+                if (!program["packSources"]) return [3 /*break*/, 18];
                 console.log("pack");
                 logger.debug("pack sources", program["packSources"]);
-                return [4 /*yield*/, archive.parse_folder("./")];
+                return [4 /*yield*/, gitAccessor.git_get_last_tag(process.cwd())];
             case 1:
-                files = _a.sent();
-                console.log("compressing ", files.length, "bla.zip");
-                return [4 /*yield*/, archive.addFull("bla.7z", files)];
+                tag_version = _a.sent();
+                if (!tag_version) {
+                    console.error("unable to pack source for", package_accessor_1.node_package.name, "no git tags were found");
+                    return [2 /*return*/];
+                }
+                filename = package_accessor_1.node_package.name + "." + tag_version + ".7z";
+                zipfile = path.join(os.tmpdir(), filename);
+                return [4 /*yield*/, pfs.exists(zipfile)];
             case 2:
+                if (!(_a.sent())) return [3 /*break*/, 4];
+                return [4 /*yield*/, pfs.unlink(zipfile)];
+            case 3:
                 _a.sent();
-                _a.label = 3;
-            case 3: return [3 /*break*/, 5];
-            case 4:
+                _a.label = 4;
+            case 4: return [4 /*yield*/, archive.parse_folder("./")];
+            case 5:
+                files = _a.sent();
+                console.log("compressing ", files.length, "files", zipfile);
+                return [4 /*yield*/, archive.addFull(zipfile, files)];
+            case 6:
+                _a.sent();
+                gh = new githubAccessor.GitHubAccessor();
+                return [4 /*yield*/, gh.authenticate()];
+            case 7:
+                if (!(_a.sent())) return [3 /*break*/, 15];
+                console.log("looking for releases");
+                return [4 /*yield*/, gh.get_releases_by_tag("drorgl", "zlib.module", "v1.2.8")];
+            case 8:
+                releases = (_a.sent()).data;
+                release = releases;
+                console.log("found", release.id, release.name, release.tag_name, "assets:", release.assets.length);
+                if (!!releases) return [3 /*break*/, 10];
+                return [4 /*yield*/, gh.create_release("drorgl", "zlib.module", "v1.2.8", "v1.2.8", false)];
+            case 9:
+                releases = _a.sent();
+                _a.label = 10;
+            case 10:
+                console.log("uploading asset");
+                _a.label = 11;
+            case 11:
+                _a.trys.push([11, 13, , 14]);
+                return [4 /*yield*/, gh.upload_release_asset("drorgl", "zlib.module", releases.id.toString(), zipfile, path.basename(zipfile), path.basename(zipfile))];
+            case 12:
+                result = _a.sent();
+                console.log(result);
+                if (result && result.data.id) {
+                    console.log("successfully uploaded", result.data.id);
+                }
+                else {
+                    console.log("failed to upload asset");
+                }
+                return [3 /*break*/, 14];
+            case 13:
                 e_1 = _a.sent();
-                console.log("error", e_1);
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                err = e_1;
+                console.error("problem uploading asset", JSON.parse(err.message).errors.map(function (v) { return v.code; }).join(", "));
+                return [3 /*break*/, 14];
+            case 14: return [3 /*break*/, 16];
+            case 15:
+                console.log("unable to authenticate github");
+                _a.label = 16;
+            case 16: return [4 /*yield*/, pfs.unlink(zipfile)];
+            case 17:
+                _a.sent();
+                _a.label = 18;
+            case 18: return [3 /*break*/, 20];
+            case 19:
+                e_2 = _a.sent();
+                console.log("error", e_2);
+                return [3 /*break*/, 20];
+            case 20: return [2 /*return*/];
         }
     });
 }); })();

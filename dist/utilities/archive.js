@@ -37,6 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var path = require("path");
 var node_7z_1 = require("node-7z");
+var ProgressBar = require("progress");
 var pfs = require("./promisified_fs");
 var myTask = new node_7z_1["default"]();
 function extractFull(archive, dest) {
@@ -52,18 +53,44 @@ function extractFull(archive, dest) {
 exports.extractFull = extractFull;
 function addFull(archive, files) {
     return __awaiter(this, void 0, void 0, function () {
+        var _this = this;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
+            return [2 /*return*/, new Promise(function (resolve, reject) {
                     files = files.map(function (v) { return path.join("./", v); });
-                    return [4 /*yield*/, myTask.add(archive, files, {})];
-                case 1: return [2 /*return*/, _a.sent()];
-            }
+                    var bar = null;
+                    bar = new ProgressBar(path.basename(archive) + " [:bar] :percent :etas", {
+                        complete: "=",
+                        incomplete: " ",
+                        width: 40,
+                        total: files.length
+                    });
+                    myTask.add(archive, files, { mx: "9" })
+                        .promise.then(function (resolve_value) {
+                        (function () { return __awaiter(_this, void 0, void 0, function () {
+                            var fsize;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, pfs.stat(archive)];
+                                    case 1:
+                                        fsize = (_a.sent()).size;
+                                        console.log();
+                                        console.log(path.basename(archive), "compressed to ", pfs.human_file_size(fsize, true));
+                                        resolve(resolve_value);
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); })();
+                    }, function (reject_reason) {
+                        reject(reject_reason);
+                    }, function (progress_data) {
+                        bar.tick(progress_data.length);
+                    });
+                })];
         });
     });
 }
 exports.addFull = addFull;
-var ignores = ["./.git/**", "./.gitignore"];
+var ignores = ["./.git/**", "./.gitignore", "./.tmp/**"];
 function parse_folder(folder) {
     return __awaiter(this, void 0, void 0, function () {
         var files, _i, ignores_1, ignore_pattern, gitignore, _a, gitignore_1, ignore_pattern;
@@ -89,13 +116,16 @@ function parse_folder(folder) {
                     if (!(_b.sent())) return [3 /*break*/, 13];
                     return [4 /*yield*/, pfs.readFile(path.join(folder, ".gitignore"), "utf8")];
                 case 7:
-                    gitignore = (_b.sent()).split("\r");
+                    gitignore = (_b.sent()).split(/\r?\n/);
                     _a = 0, gitignore_1 = gitignore;
                     _b.label = 8;
                 case 8:
                     if (!(_a < gitignore_1.length)) return [3 /*break*/, 13];
                     ignore_pattern = gitignore_1[_a];
                     ignore_pattern = ignore_pattern.trim();
+                    if (!ignore_pattern) {
+                        return [3 /*break*/, 12];
+                    }
                     return [4 /*yield*/, pfs.filter_glob(ignore_pattern, files)];
                 case 9:
                     files = _b.sent();

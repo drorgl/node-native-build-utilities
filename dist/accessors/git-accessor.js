@@ -22,6 +22,19 @@ function git_checkout(cwd, branch) {
     });
 }
 exports.git_checkout = git_checkout;
+function git_get_last_tag(cwd) {
+    return new Promise(function (resolve, reject) {
+        logger.info("getting last tag", "in", cwd);
+        var command = child_process.spawnSync("git", ["describe", "--abbrev=0", "--tags"], { shell: true, cwd: cwd });
+        if (command.status === 0) {
+            resolve(command.output.join("").toString().trim());
+        }
+        else {
+            reject(command.stderr.toString());
+        }
+    });
+}
+exports.git_get_last_tag = git_get_last_tag;
 function git_submodule_update(cwd) {
     return new Promise(function (resolve, reject) {
         logger.info("updating submodule in", cwd);

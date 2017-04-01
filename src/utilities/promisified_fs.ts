@@ -16,6 +16,21 @@ export function exists(file: string | Buffer): Promise<boolean> {
 
 export let readFile = bluebird.promisify<string, string, string>(fs.readFile);
 
+export function writeFile(filename: string, encoding: string, data: any): Promise<boolean> {
+	return new Promise<boolean>((resolve, reject) => {
+		fs.writeFile(filename, data, { encoding }, (err) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(true);
+			}
+		});
+	});
+}
+
+export let mkdtemp = bluebird.promisify<string, string>(fs.mkdtemp);
+export let unlink = bluebird.promisify<void, string>(fs.unlink);
+
 export function normalize_path(filepath: string): string {
 	if (process.platform === "win32") {
 		return filepath.split(/\/|\\/).join("\\");
@@ -59,4 +74,21 @@ export async function filter_glob(pattern: string, files: string[]): Promise<str
 		return !minimatch.filter(normalize_path(pattern), { dot: true })(normalize_path(v), i, a);
 	});
 	return retfiles;
+}
+
+// http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
+export function human_file_size(bytes: number, si?: boolean): string {
+	let thresh = si ? 1000 : 1024;
+	if (Math.abs(bytes) < thresh) {
+		return bytes + " B";
+	}
+	let units = si
+		? ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+		: ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
+	let u = -1;
+	do {
+		bytes /= thresh;
+		++u;
+	} while (Math.abs(bytes) >= thresh && u < units.length - 1);
+	return bytes.toFixed(1) + " " + units[u];
 }

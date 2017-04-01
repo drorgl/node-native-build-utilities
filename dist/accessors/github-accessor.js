@@ -36,9 +36,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var github = require("github");
-var fs = require("fs");
+var pfs = require("../utilities/promisified_fs");
 var path = require("path");
-var app_root_path = require("app-root-path");
+// import app_root_path = require("app-root-path");
 var promptly = require("promptly");
 var ini = require("ini");
 var logger = require("../utilities/logger");
@@ -51,30 +51,42 @@ var email_regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))
 var AuthenticationFilename = ".github-authentication-cache";
 var GitHubAccessor = (function () {
     function GitHubAccessor() {
-        this._auth_cache_filename = path.join(app_root_path.path, AuthenticationFilename);
+        this._auth_cache_filename = path.join(process.cwd(), AuthenticationFilename);
         this._github = new github();
         this._authenticated = false;
     }
     GitHubAccessor.prototype.authenticate = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var success;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var _a, _b, _c, _d, e_1, success;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
                         if (this._authenticated) {
                             return [2 /*return*/, true];
                         }
-                        if (!fs.exists(this._auth_cache_filename)) return [3 /*break*/, 4];
-                        try {
-                            this._authentication = JSON.parse(fs.readFileSync(this._auth_cache_filename).toString("utf8"));
-                        }
-                        catch (e) {
-                            logger.warn("unable to parse authentication cache file " + AuthenticationFilename + ", please delete and retry");
-                        }
-                        if (!this._authentication) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.test_authentication()];
+                        console.log("checking existing file");
+                        return [4 /*yield*/, pfs.exists(this._auth_cache_filename)];
                     case 1:
-                        if (_a.sent()) {
+                        if (!_e.sent()) return [3 /*break*/, 5];
+                        _e.label = 2;
+                    case 2:
+                        _e.trys.push([2, 4, , 5]);
+                        _a = this;
+                        _c = (_b = JSON).parse;
+                        return [4 /*yield*/, pfs.readFile(this._auth_cache_filename, "utf8")];
+                    case 3:
+                        _a._authentication = _c.apply(_b, [_e.sent()]);
+                        return [3 /*break*/, 5];
+                    case 4:
+                        e_1 = _e.sent();
+                        logger.warn("unable to parse authentication cache file " + AuthenticationFilename + ", please delete and retry");
+                        return [3 /*break*/, 5];
+                    case 5:
+                        console.log("testing authentication");
+                        if (!this._authentication) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this.test_authentication()];
+                    case 6:
+                        if (_e.sent()) {
                             this._authenticated = true;
                             return [2 /*return*/, true];
                         }
@@ -82,17 +94,18 @@ var GitHubAccessor = (function () {
                             logger.info("cached authentication failed");
                             this._authentication = null;
                         }
-                        _a.label = 2;
-                    case 2:
-                        if (!!this._authentication) return [3 /*break*/, 4];
+                        _e.label = 7;
+                    case 7:
+                        console.log("checking console");
+                        if (!!this._authentication) return [3 /*break*/, 9];
                         return [4 /*yield*/, this.console_authentication()];
-                    case 3:
-                        success = _a.sent();
+                    case 8:
+                        success = _e.sent();
                         if (success) {
                             this._authenticated = true;
                         }
                         return [2 /*return*/, success];
-                    case 4: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -116,7 +129,7 @@ var GitHubAccessor = (function () {
                         return [4 /*yield*/, this._github.authorization.getAll({})];
                     case 3:
                         authorizations = _a.sent();
-                        authorization = authorizations.find(function (v) {
+                        authorization = authorizations.data.find(function (v) {
                             return v.note === THIS_PACKAGE_NAME && (v.scopes.indexOf("public_repo") !== -1);
                         });
                         if (!authorization) return [3 /*break*/, 6];
@@ -142,8 +155,12 @@ var GitHubAccessor = (function () {
                         })];
                     case 7:
                         new_token = _a.sent();
+                        if (!new_token || !new_token.data) {
+                            logger.error("failed to generate new authorization token");
+                            return [2 /*return*/, false];
+                        }
                         this.save_token({
-                            access_token: new_token.token
+                            access_token: new_token.data.token
                         });
                         return [2 /*return*/, true];
                 }
@@ -261,34 +278,70 @@ var GitHubAccessor = (function () {
     };
     GitHubAccessor.prototype.test_authentication = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var user, e_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this._github.authorization.check(this._authentication)];
-                    case 1: return [2 /*return*/, _a.sent()];
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        this._github.authenticate({
+                            type: "oauth",
+                            token: this._authentication.access_token
+                        });
+                        return [4 /*yield*/, this._github.users.get({})];
+                    case 1:
+                        user = _a.sent();
+                        return [2 /*return*/, (user != null)];
+                    case 2:
+                        e_2 = _a.sent();
+                        logger.debug("unable to check authentication", e_2);
+                        return [2 /*return*/, false];
+                    case 3: return [2 /*return*/];
                 }
             });
         });
     };
     GitHubAccessor.prototype.read_default_email = function () {
-        var config_filename = path.join(app_root_path.path, ".git/", "./config");
-        if (!fs.existsSync(config_filename)) {
-            logger.warn("git is not configured for this repository");
-            return "";
-        }
-        var gitconfig = ini.parse(fs.readFileSync(config_filename, "utf-8"));
-        if (gitconfig && gitconfig.user && gitconfig.user.email) {
-            return gitconfig.user.email;
-        }
-        logger.warn("email not found in git");
-        return "";
+        return __awaiter(this, void 0, void 0, function () {
+            var config_filename, gitconfig, _a, _b, _c;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        config_filename = path.join(process.cwd(), ".git/", "./config");
+                        return [4 /*yield*/, pfs.exists(config_filename)];
+                    case 1:
+                        if (!(_d.sent())) {
+                            logger.warn("git is not configured for this repository");
+                            return [2 /*return*/, ""];
+                        }
+                        _b = (_a = ini).parse;
+                        return [4 /*yield*/, pfs.readFile(config_filename, "utf-8")];
+                    case 2:
+                        gitconfig = _b.apply(_a, [_d.sent()]);
+                        if (gitconfig && gitconfig.user && gitconfig.user.email) {
+                            return [2 /*return*/, gitconfig.user.email];
+                        }
+                        logger.warn("email not found in git");
+                        return [2 /*return*/, ""];
+                }
+            });
+        });
     };
     GitHubAccessor.prototype.save_token = function (token) {
-        fs.writeFile(this._auth_cache_filename, JSON.stringify(token, null, "\t"), function (err) {
-            if (err) {
-                logger.error("unable to save token, read only?");
-            }
+        return __awaiter(this, void 0, void 0, function () {
+            var success;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, pfs.writeFile(this._auth_cache_filename, "utf8", JSON.stringify(token, null, "\t"))];
+                    case 1:
+                        success = _a.sent();
+                        if (!success) {
+                            logger.error("unable to save token, read only?");
+                        }
+                        this._authentication = token;
+                        return [2 /*return*/];
+                }
+            });
         });
-        this._authentication = token;
     };
     GitHubAccessor.prototype.confirm = function (message) {
         return new Promise(function (resolve, reject) {
@@ -303,30 +356,38 @@ var GitHubAccessor = (function () {
     };
     GitHubAccessor.prototype.prompt_email = function () {
         var _this = this;
-        return new Promise(function (resolve, reject) {
-            var defaultUsername = _this.read_default_email();
-            var emailValidator = function (value) {
-                if (email_regex.test(value)) {
-                    return value;
+        return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+            var defaultUsername, emailValidator;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.read_default_email()];
+                    case 1:
+                        defaultUsername = _a.sent();
+                        emailValidator = function (value) {
+                            if (email_regex.test(value)) {
+                                return value;
+                            }
+                            throw new Error(value + " is not an email");
+                        };
+                        promptly.prompt("Github username" + ((defaultUsername) ? "(" + defaultUsername + ")" : "") + ": ", {
+                            "default": defaultUsername,
+                            trim: true,
+                            validator: emailValidator,
+                            retry: true
+                        }, function (err, value) {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            if (value) {
+                                resolve(value);
+                            }
+                            reject("no email entered");
+                        });
+                        return [2 /*return*/];
                 }
-                throw new Error(value + " is not an email");
-            };
-            promptly.prompt("Github username: ", {
-                "default": defaultUsername,
-                trim: true,
-                validator: emailValidator,
-                retry: true
-            }, function (err, value) {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                if (value) {
-                    resolve(value);
-                }
-                reject("no email entered");
             });
-        });
+        }); });
     };
     GitHubAccessor.prototype.prompt_password = function () {
         return new Promise(function (resolve, reject) {

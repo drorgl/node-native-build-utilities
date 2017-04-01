@@ -1,6 +1,6 @@
 import fs = require("fs");
 import path = require("path");
-import app_root_path = require("app-root-path");
+// import app_root_path = require("app-root-path");
 
 interface IPerson {
 	name: string;
@@ -53,4 +53,4 @@ interface IPackage {
 }
 
 export const node_package: IPackage =
-	JSON.parse(fs.readFileSync(path.join(app_root_path.path, "package.json")).toString());
+	JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json")).toString());

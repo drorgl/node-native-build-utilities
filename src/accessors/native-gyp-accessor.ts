@@ -1,4 +1,4 @@
-//import fs = require("fs");
+// import fs = require("fs");
 import path = require("path");
 import * as pfs from "../utilities/promisified_fs";
 

@@ -38,10 +38,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 exports.__esModule = true;
 var program = require("commander");
-var github_accessor_1 = require("./accessors/github-accessor");
+var githubAccessor = require("./accessors/github-accessor");
 var package_accessor_1 = require("./accessors/package-accessor");
 var logger = require("./utilities/logger");
-var github_accessor = new github_accessor_1.GitHubAccessor();
+var github_accessor = new githubAccessor.GitHubAccessor();
 program
     .version(package_accessor_1.node_package.version)
     .option("-a, --list-assets [asset]", "list assets in user/repo/tag/asset format")
@@ -63,7 +63,7 @@ program
                 return [4 /*yield*/, github_accessor.get_releases(owner, repo)];
             case 1:
                 releases = _a.sent();
-                filtered_assets = releases.filter(function (v) { return (tag_1) ? v.tag_name === tag_1 : true; }).map(function (v) { return v.assets; });
+                filtered_assets = releases.data.filter(function (v) { return (tag_1) ? v.tag_name === tag_1 : true; }).map(function (v) { return v.assets; });
                 merged = [].concat.apply([], filtered_assets).map(function (v) {
                     return {
                         name: v.name,
@@ -84,7 +84,7 @@ program
                 return [4 /*yield*/, github_accessor.get_releases(owner, repo)];
             case 3:
                 releases = _a.sent();
-                filtered_assets = releases.filter(function (v) { return (tag_2) ? v.tag_name === tag_2 : true; }).map(function (v) { return v.assets; });
+                filtered_assets = releases.data.filter(function (v) { return (tag_2) ? v.tag_name === tag_2 : true; }).map(function (v) { return v.assets; });
                 asset = [].concat.apply([], filtered_assets).find(function (v) { return v.name === filename_1; });
                 if (asset) {
                     logger.debug("downloading " + asset.url);
@@ -102,7 +102,7 @@ program
                 return [4 /*yield*/, github_accessor.get_releases(owner, repo)];
             case 5:
                 releases = _a.sent();
-                filtered_releases = releases.filter(function (v) { return (tag_3) ? v.tag_name === tag_3 : true; }).map(function (v) {
+                filtered_releases = releases.data.filter(function (v) { return (tag_3) ? v.tag_name === tag_3 : true; }).map(function (v) {
                     return {
                         name: v.name,
                         url: v.url
