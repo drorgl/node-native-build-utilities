@@ -39,6 +39,7 @@ var path = require("path");
 var node_7z_1 = require("node-7z");
 var ProgressBar = require("progress");
 var pfs = require("./promisified_fs");
+var crypto = require("crypto");
 var myTask = new node_7z_1["default"]();
 function extractFull(archive, dest) {
     return __awaiter(this, void 0, void 0, function () {
@@ -90,7 +91,7 @@ function addFull(archive, files) {
     });
 }
 exports.addFull = addFull;
-var ignores = ["./.git/**", "./.gitignore", "./.tmp/**"];
+var ignores = ["./.git/**", "./.gitignore", "./.tmp/**", "./.github-authentication-cache"];
 function parse_folder(folder) {
     return __awaiter(this, void 0, void 0, function () {
         var files, _i, ignores_1, ignore_pattern, gitignore, _a, gitignore_1, ignore_pattern;
@@ -147,4 +148,20 @@ function parse_folder(folder) {
     });
 }
 exports.parse_folder = parse_folder;
+function generate_random(size) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, new Promise(function (resolve, reject) {
+                    crypto.randomBytes(size, function (err, buf) {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        resolve(buf.toString("hex"));
+                    });
+                })];
+        });
+    });
+}
+exports.generate_random = generate_random;
 //# sourceMappingURL=archive.js.map

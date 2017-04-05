@@ -6,6 +6,30 @@ import minimatch = require("minimatch");
 export let readdir = bluebird.promisify<string[], string | Buffer>(fs.readdir);
 export let stat = bluebird.promisify<fs.Stats, string | Buffer>(fs.stat);
 
+export function mkdir(file: string | Buffer): Promise<any> {
+	return new Promise<any>((resolve, reject) => {
+		fs.mkdir(file, (err) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+			resolve();
+		});
+	});
+}
+
+export function rmdir(file: string | Buffer): Promise<any> {
+	return new Promise<any>((resolve, reject) => {
+		fs.rmdir(file, (err) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+			resolve();
+		});
+	});
+}
+
 export function exists(file: string | Buffer): Promise<boolean> {
 	return new Promise<boolean>((resolve, reject) => {
 		fs.exists(file, (exists_) => {

@@ -2,6 +2,7 @@ import path = require("path");
 import node7z from "node-7z";
 import * as ProgressBar from "progress";
 import * as pfs from "./promisified_fs";
+import crypto = require("crypto");
 
 let myTask = new node7z();
 
@@ -38,7 +39,7 @@ export async function addFull(archive: string, files: string[]): Promise<any> {
 	});
 }
 
-const ignores = ["./.git/**", "./.gitignore", "./.tmp/**"];
+const ignores = ["./.git/**", "./.gitignore", "./.tmp/**", "./.github-authentication-cache"];
 
 export async function parse_folder(folder: string): Promise<string[]> {
 	let files = await pfs.find_all_files(folder);
@@ -63,4 +64,16 @@ export async function parse_folder(folder: string): Promise<string[]> {
 		}
 	}
 	return files;
+}
+
+export async function generate_random(size: number): Promise<string> {
+	return new Promise<string>((resolve, reject) => {
+		crypto.randomBytes(size, (err, buf) => {
+			if (err) {
+				reject(err);
+				return;
+			}
+			resolve(buf.toString("hex"));
+		});
+	});
 }

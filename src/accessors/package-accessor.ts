@@ -1,5 +1,7 @@
 import fs = require("fs");
 import path = require("path");
+import url = require("url");
+import { IPackageArgs, npa } from "./npm-package-arg";
 // import app_root_path = require("app-root-path");
 
 interface IPerson {
@@ -54,3 +56,67 @@ interface IPackage {
 
 export const node_package: IPackage =
 	JSON.parse(fs.readFileSync(path.join(process.cwd(), "package.json")).toString());
+
+enum repository_source {
+	git,
+	svn,
+	github,
+	gist,
+	bitbucket,
+	gitlab
+}
+
+interface IParsedRepository {
+	repository_type: string;
+	url: string;
+	username: string;
+	repo: string;
+}
+
+interface IHostInfo {
+	host_type: string;
+	username: string;
+	repo: string;
+}
+
+function parse_shortcut(shortcut: string): IHostInfo {
+	let shortcut_regex_with_host = /(\S*)[:](\S*)[\/](\S*)/;
+	let shortcut_regex_without_host = /(\S*)[\/](\S*)/;
+	if (shortcut_regex_with_host.test(shortcut)) {
+		let match = shortcut_regex_with_host.exec(shortcut);
+		return {
+			host_type: match[1],
+			username: match[2],
+			repo: match[3]
+		};
+	} else if (shortcut_regex_without_host.test(shortcut)) {
+		let match = shortcut_regex_without_host.exec(shortcut);
+		return {
+			host_type: match[1],
+			username: match[2],
+			repo: match[3]
+		};
+	}
+	return null;
+}
+
+export function parse_repository(): IParsedRepository {
+	let parsed: IPackageArgs;
+	if (!node_package.repository) {
+		throw new Error("unable to parse repository, doesn't exist");
+	}
+	if (typeof node_package.repository === "string") {
+		parsed = npa(node_package.repository);
+	} else if (node_package.repository.url) {
+		parsed = npa(node_package.repository.url);
+	}
+
+	let parsed_shortcut = parse_shortcut(parsed.hosted.shortcut);
+
+	return {
+		repository_type: (parsed.type === "hosted") ? parsed.hosted.type : parsed.type,
+		url: (parsed.hosted) ? parsed.hosted.shortcut : parsed.spec,
+		username: parsed_shortcut.username,
+		repo: parsed_shortcut.repo
+	};
+}

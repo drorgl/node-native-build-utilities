@@ -35,7 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-//import fs = require("fs");
+// import fs = require("fs");
 var path = require("path");
 var pfs = require("../utilities/promisified_fs");
 var strip_json_comments = require("strip-json-comments");

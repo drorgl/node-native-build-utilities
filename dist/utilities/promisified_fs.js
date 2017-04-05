@@ -40,6 +40,30 @@ var bluebird = require("bluebird");
 var minimatch = require("minimatch");
 exports.readdir = bluebird.promisify(fs.readdir);
 exports.stat = bluebird.promisify(fs.stat);
+function mkdir(file) {
+    return new Promise(function (resolve, reject) {
+        fs.mkdir(file, function (err) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve();
+        });
+    });
+}
+exports.mkdir = mkdir;
+function rmdir(file) {
+    return new Promise(function (resolve, reject) {
+        fs.rmdir(file, function (err) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            resolve();
+        });
+    });
+}
+exports.rmdir = rmdir;
 function exists(file) {
     return new Promise(function (resolve, reject) {
         fs.exists(file, function (exists_) {
