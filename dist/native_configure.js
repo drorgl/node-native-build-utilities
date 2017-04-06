@@ -154,7 +154,7 @@ if (!detection.z7_version) {
                 _d.label = 7;
             case 7:
                 if (!(configured_dependencies.archived_sources && configured_dependencies.archived_sources.length)) return [3 /*break*/, 9];
-                logger.info("preparint archived source dependencies...");
+                logger.info("preparing archived source dependencies...");
                 return [4 /*yield*/, dependencyEngine.download_archived_sources(configured_dependencies.archived_sources, default_source_path)];
             case 8:
                 _d.sent();

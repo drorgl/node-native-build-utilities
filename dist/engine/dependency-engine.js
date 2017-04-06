@@ -176,9 +176,11 @@ function parse_dependencies(native_gyp, configuration) {
                     continue;
                 }
                 archived_sources = [];
-                for (_d = 0, _e = dependency.archived_sources; _d < _e.length; _d++) {
-                    asource = _e[_d];
-                    archived_sources.push(asource);
+                if (dependency.archived_sources) {
+                    for (_d = 0, _e = dependency.archived_sources; _d < _e.length; _d++) {
+                        asource = _e[_d];
+                        archived_sources.push(asource);
+                    }
                 }
                 if (archived_sources.length > 0) {
                     // TODO: download all sources, switch to the branch
@@ -234,25 +236,29 @@ function download_precompiled_sources(precompiled_sources, source_path) {
                     _i = 0, precompiled_sources_1 = precompiled_sources;
                     _a.label = 1;
                 case 1:
-                    if (!(_i < precompiled_sources_1.length)) return [3 /*break*/, 7];
+                    if (!(_i < precompiled_sources_1.length)) return [3 /*break*/, 8];
                     source = precompiled_sources_1[_i];
+                    if (!source.source) return [3 /*break*/, 4];
                     return [4 /*yield*/, download_source(source.source, source_path)];
                 case 2:
                     _a.sent();
-                    return [4 /*yield*/, download_source(source.copy, source_path)];
+                    return [4 /*yield*/, extract_source(source.source, source_path)];
                 case 3:
                     _a.sent();
-                    return [4 /*yield*/, extract_source(source.source, source_path)];
+                    _a.label = 4;
                 case 4:
-                    _a.sent();
-                    return [4 /*yield*/, extract_source(source.copy, source_path)];
+                    if (!source.copy) return [3 /*break*/, 7];
+                    return [4 /*yield*/, download_source(source.copy, source_path)];
                 case 5:
                     _a.sent();
-                    _a.label = 6;
+                    return [4 /*yield*/, extract_source(source.copy, source_path)];
                 case 6:
+                    _a.sent();
+                    _a.label = 7;
+                case 7:
                     _i++;
                     return [3 /*break*/, 1];
-                case 7: return [2 /*return*/];
+                case 8: return [2 /*return*/];
             }
         });
     });

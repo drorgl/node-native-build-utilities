@@ -46,6 +46,7 @@ function download_size(downloadurl) {
                 reject("file not found - " + downloadurl);
                 return;
             }
+            console.log("statusCode", res.statusCode);
             var len = parseInt(res.headers["content-length"], 10);
             resolve(len);
         });

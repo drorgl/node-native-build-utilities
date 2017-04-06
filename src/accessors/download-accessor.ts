@@ -1,8 +1,13 @@
 import * as ProgressBar from "progress";
 import url = require("url");
 import fs = require("fs");
-import https = require("https");
-import http = require("http");
+
+import https_ = require("https");
+import http_ = require("http");
+// tslint:disable-next-line:no-var-requires
+let http = require("follow-redirects").http;
+// tslint:disable-next-line:no-var-requires
+let https = require("follow-redirects").https;
 import path = require("path");
 import * as logger from "../utilities/logger";
 
@@ -35,31 +40,30 @@ export function download_size(downloadurl: string): Promise<number> {
 		const default_https = 443;
 		const default_http = 80;
 
-		let req: http.ClientRequest = null;
+		let req: http_.ClientRequest = null;
 
 		if (downloadurlsplit.protocol === "http:") {
 			req = http.request({
-				method: "HEAD",
 				host: downloadurlsplit.host,
 				port: (downloadurlsplit.port) ? parseInt(downloadurlsplit.port) : default_http,
 				path: downloadurlsplit.path
 			});
 		} else if (downloadurlsplit.protocol === "https:") {
 			req = https.request({
-				method: "HEAD",
 				host: downloadurlsplit.host,
 				port: (downloadurlsplit.port) ? parseInt(downloadurlsplit.port) : default_https,
 				path: downloadurlsplit.path
 			});
 		}
 
-		req.on("response", (res: http.ClientResponse) => {
+		req.on("response", (res: http_.ClientResponse) => {
 			if (res.statusCode === 404) {
 				reject("file not found - " + downloadurl);
 				return;
 			}
 
 			let len = parseInt(res.headers["content-length"], 10);
+			req.abort();
 			resolve(len);
 		});
 
@@ -84,7 +88,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 		const default_https = 443;
 		const default_http = 80;
 
-		let req: http.ClientRequest = null;
+		let req: http_.ClientRequest = null;
 
 		if (downloadurlsplit.protocol === "http:") {
 			req = http.request({
@@ -111,7 +115,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 			fs.unlink(filename);
 		});
 
-		req.on("response", (res: http.ClientResponse) => {
+		req.on("response", (res: http_.ClientResponse) => {
 			if (res.statusCode === 404) {
 				reject("file not found - " + downloadurl);
 				return;
@@ -166,7 +170,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 				if (file != null) {
 					file.end();
 				}
-				logger.info("downloaded " , filesize , "bytes");
+				logger.info("downloaded ", filesize, "bytes");
 
 				if (filesize === _file_streams[downloadurl].length) {
 					resolve(true);

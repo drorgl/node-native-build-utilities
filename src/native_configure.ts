@@ -125,7 +125,7 @@ if (!detection.z7_version) {
 		}
 
 		if (configured_dependencies.archived_sources && configured_dependencies.archived_sources.length) {
-			logger.info("preparint archived source dependencies...");
+			logger.info("preparing archived source dependencies...");
 			await dependencyEngine.download_archived_sources(configured_dependencies.archived_sources, default_source_path);
 			logger.info("done");
 		}
