@@ -28,6 +28,8 @@ interface IDependency {
 	headers: { [package_name: string]: IPrecompiledSource[] };
 	libraries: { [package_name: string]: IPrecompiledSource[] };
 	sources: Array<string | ISource>;
+	archived_sources: Array<string | ISource>;
+
 }
 
 export interface INativeGyp {

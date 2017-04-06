@@ -124,6 +124,12 @@ if (!detection.z7_version) {
 			logger.info("done");
 		}
 
+		if (configured_dependencies.archived_sources && configured_dependencies.archived_sources.length) {
+			logger.info("preparint archived source dependencies...");
+			await dependencyEngine.download_archived_sources(configured_dependencies.archived_sources, default_source_path);
+			logger.info("done");
+		}
+
 		if (configured_dependencies.git_repositories && configured_dependencies.git_repositories.length) {
 			logger.info("preparing source dependencies..");
 			await dependencyEngine.clone_git_sources(configured_dependencies.git_repositories, default_source_path);

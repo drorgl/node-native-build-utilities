@@ -15,6 +15,7 @@ import * as logger from "../utilities/logger";
 export interface IDependenciesInformation {
 	dependencies: nativeConfiguration.IDependencies;
 	precompiled_sources: nativeGyp.IPrecompiledSource[];
+	archived_sources: Array<string | nativeGyp.ISource>;
 	git_repositories: Array<string | nativeGyp.ISource>;
 }
 
@@ -22,6 +23,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 	let dependencies_information: IDependenciesInformation = {
 		dependencies: {},
 		precompiled_sources: [],
+		archived_sources: [],
 		git_repositories: []
 	};
 	// let configured_dependencies: nativeConfiguration.IDependencies = {};
@@ -133,7 +135,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 
 			for (let source of precompiled_header_sources) {
 				dependencies_information.precompiled_sources.push(source);
-				precompiled_header_paths.push(parse_precompiled_source(source).path);
+				precompiled_header_paths.push(parse_precompiled_source(source.source).path);
 
 				if (source.copy) {
 					precompiled_file_copy.push(parse_precompiled_copy(source).path);
@@ -142,7 +144,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 
 			for (let source of precompiled_library_sources) {
 				dependencies_information.precompiled_sources.push(source);
-				precompiled_library_paths.push(parse_precompiled_source(source).path);
+				precompiled_library_paths.push(parse_precompiled_source(source.source).path);
 
 				if (source.copy) {
 					precompiled_file_copy.push(parse_precompiled_copy(source).path);
@@ -154,6 +156,28 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 				pre_headers: precompiled_header_paths,
 				pre_libraries: precompiled_library_paths,
 				copy: precompiled_file_copy
+			};
+		}
+
+		if (dependencies_information.dependencies[dependency_name]) {
+			continue;
+		}
+
+		let archived_sources: Array<string | nativeGyp.ISource> = [];
+		for (let asource of dependency.archived_sources) {
+			archived_sources.push(asource);
+		}
+
+		if (archived_sources.length > 0) {
+			// TODO: download all sources, switch to the branch
+			// git clone --recursive git://github.com/foo/bar.git
+			for (let source of archived_sources) {
+				dependencies_information.archived_sources.push(source);
+				// await git_clone(source, default_source_path);
+			}
+			dependencies_information.dependencies[dependency_name] = {
+				source: "archived_source",
+				gyp_sources: dependency.sources
 			};
 		}
 
@@ -193,8 +217,23 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 
 export async function download_precompiled_sources(precompiled_sources: nativeGyp.IPrecompiledSource[], source_path: string) {
 	for (let source of precompiled_sources) {
-		await download_source(source, source_path);
-		await extract_source(source, source_path);
+		await download_source(source.source, source_path);
+		await download_source(source.copy, source_path);
+		await extract_source(source.source, source_path);
+		await extract_source(source.copy, source_path);
+	}
+}
+
+export async function download_archived_sources(git_repositories: Array<string | nativeGyp.ISource>, source_path: string) {
+	for (let source of git_repositories) {
+		let source_archive: string;
+		if ((source as nativeGyp.ISource).source) {
+			source_archive = (source as nativeGyp.ISource).source;
+		} else {
+			source_archive = source as string;
+		}
+		await download_source(source_archive, source_path);
+		await extract_source(source_archive, source_path);
 	}
 }
 
@@ -228,17 +267,11 @@ async function download_file(fileurl: string, filename: string) {
 	_download_handled[fileurl + filename] = true;
 }
 
-async function download_source(source: nativeGyp.IPrecompiledSource, source_path: string) {
-	let fileurl = source.source.substr(0, source.source.lastIndexOf("@"));
+async function download_source(source: string, source_path: string) {
+	let fileurl = source.substr(0, source.lastIndexOf("@"));
 	let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
 
-	// todo: download the copy as well
 	await download_file(fileurl, filename);
-	if (source.copy) {
-		fileurl = source.copy.substr(0, source.copy.lastIndexOf("@"));
-		filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
-		await download_file(fileurl, filename);
-	}
 }
 
 interface IPrecompiledSourceParsed {
@@ -265,24 +298,24 @@ function parse_precompiled_copy(source: nativeGyp.IPrecompiledSource): IPrecompi
 	};
 }
 
-function parse_precompiled_source(source: nativeGyp.IPrecompiledSource): IPrecompiledSourceParsed {
-	let file_url_index = source.source.lastIndexOf("@");
+function parse_precompiled_source(source: string): IPrecompiledSourceParsed {
+	let file_url_index = source.lastIndexOf("@");
 	if (file_url_index === -1) {
 		return {
-			url: source.source,
+			url: source,
 			path: ""
 		};
 	}
 
 	return {
-		url: source.source.substr(0, file_url_index),
-		path: source.source.substr(file_url_index + 1)
+		url: source.substr(0, file_url_index),
+		path: source.substr(file_url_index + 1)
 	};
 }
 
 let _extraction_handled: { [file: string]: boolean } = {};
 
-async function extract_source(source: nativeGyp.IPrecompiledSource, source_path: string) {
+async function extract_source(source: string, source_path: string) {
 	let parsed = parse_precompiled_source(source);
 
 	let fileurl = parsed.url;
@@ -293,19 +326,6 @@ async function extract_source(source: nativeGyp.IPrecompiledSource, source_path:
 	if (!_extraction_handled[filename + source_path]) {
 		await extractFull(filename, source_path);
 		_extraction_handled[filename + source_path] = true;
-	}
-
-	if (source.copy) {
-		parsed = parse_precompiled_copy(source);
-
-		fileurl = parsed.url;
-		filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
-
-		logger.info("extracting", filename, "into", source_path);
-		if (!_extraction_handled[filename + source_path]) {
-			await extractFull(filename, source_path);
-			_extraction_handled[filename + source_path] = true;
-		}
 	}
 }
 

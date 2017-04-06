@@ -88,7 +88,7 @@ if (!detection.z7_version) {
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 11, , 12]);
+                _d.trys.push([0, 13, , 14]);
                 return [4 /*yield*/, nativeGyp.read_all_native_gyps("./")];
             case 1:
                 native_gyps = _d.sent();
@@ -153,23 +153,31 @@ if (!detection.z7_version) {
                 logger.info("done");
                 _d.label = 7;
             case 7:
-                if (!(configured_dependencies.git_repositories && configured_dependencies.git_repositories.length)) return [3 /*break*/, 9];
-                logger.info("preparing source dependencies..");
-                return [4 /*yield*/, dependencyEngine.clone_git_sources(configured_dependencies.git_repositories, default_source_path)];
+                if (!(configured_dependencies.archived_sources && configured_dependencies.archived_sources.length)) return [3 /*break*/, 9];
+                logger.info("preparint archived source dependencies...");
+                return [4 /*yield*/, dependencyEngine.download_archived_sources(configured_dependencies.archived_sources, default_source_path)];
             case 8:
                 _d.sent();
                 logger.info("done");
                 _d.label = 9;
-            case 9: return [4 /*yield*/, nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration)];
+            case 9:
+                if (!(configured_dependencies.git_repositories && configured_dependencies.git_repositories.length)) return [3 /*break*/, 11];
+                logger.info("preparing source dependencies..");
+                return [4 /*yield*/, dependencyEngine.clone_git_sources(configured_dependencies.git_repositories, default_source_path)];
             case 10:
                 _d.sent();
-                return [3 /*break*/, 12];
-            case 11:
+                logger.info("done");
+                _d.label = 11;
+            case 11: return [4 /*yield*/, nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration)];
+            case 12:
+                _d.sent();
+                return [3 /*break*/, 14];
+            case 13:
                 e_1 = _d.sent();
                 logger.error("unable to configure", e_1, e_1.stackTrace);
                 process.exit(1);
-                return [3 /*break*/, 12];
-            case 12: return [2 /*return*/];
+                return [3 /*break*/, 14];
+            case 14: return [2 /*return*/];
         }
     });
 }); })();
