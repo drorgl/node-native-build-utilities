@@ -164,8 +164,10 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 		}
 
 		let archived_sources: Array<string | nativeGyp.ISource> = [];
-		for (let asource of dependency.archived_sources) {
-			archived_sources.push(asource);
+		if (dependency.archived_sources) {
+			for (let asource of dependency.archived_sources) {
+				archived_sources.push(asource);
+			}
 		}
 
 		if (archived_sources.length > 0) {
