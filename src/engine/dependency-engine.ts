@@ -164,8 +164,10 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 		}
 
 		let archived_sources: Array<string | nativeGyp.ISource> = [];
-		for (let asource of dependency.archived_sources) {
-			archived_sources.push(asource);
+		if (dependency.archived_sources) {
+			for (let asource of dependency.archived_sources) {
+				archived_sources.push(asource);
+			}
 		}
 
 		if (archived_sources.length > 0) {
@@ -217,10 +219,15 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 
 export async function download_precompiled_sources(precompiled_sources: nativeGyp.IPrecompiledSource[], source_path: string) {
 	for (let source of precompiled_sources) {
-		await download_source(source.source, source_path);
-		await download_source(source.copy, source_path);
-		await extract_source(source.source, source_path);
-		await extract_source(source.copy, source_path);
+		if (source.source) {
+			await download_source(source.source, source_path);
+			await extract_source(source.source, source_path);
+		}
+
+		if (source.copy) {
+			await download_source(source.copy, source_path);
+			await extract_source(source.copy, source_path);
+		}
 	}
 }
 
