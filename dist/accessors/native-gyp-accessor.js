@@ -40,6 +40,28 @@ var path = require("path");
 var pfs = require("../utilities/promisified_fs");
 var strip_json_comments = require("strip-json-comments");
 exports.NATIVE_GYP_FILENAME = "native_gyp.json";
+// function merge_dependency(depA : IDependency, depB : IDependency) : IDependency{
+// 	let depNew = depA;
+// 	for (let pkg of depB.packages){
+// 		if (depNew.packages.indexOf(pkg) == -1){
+// 			depNew.packages.push(pkg);
+// 		}
+// 	}
+// }
+// export function merge(nativeGypA : INativeGyp, nativeGypB : INativeGyp) : INativeGyp{
+// 	if (nativeGypA && nativeGypA.dependencies && (!nativeGypB || !nativeGypB.dependencies)){
+// 		return nativeGypA;
+// 	}else if (nativeGypB && nativeGypB.dependencies && (!nativeGypA || !nativeGypA.dependencies)){
+// 		return nativeGypB;
+// 	}
+// 	let ngNew = nativeGypA;
+// 	for (let depId of Object.keys(nativeGypB.dependencies)){
+// 		if (!ngNew.dependencies[depId]){
+// 			ngNew.dependencies[depId] = nativeGypB.dependencies[depId];
+// 		}else{
+// 		}
+// 	}
+// }
 function exists() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -58,7 +80,7 @@ function read(filename) {
                     if (!(_a.sent())) {
                         throw new Error("file not found");
                     }
-                    return [4 /*yield*/, pfs.readFile(exports.NATIVE_GYP_FILENAME, "utf8")];
+                    return [4 /*yield*/, pfs.readFile(filename || exports.NATIVE_GYP_FILENAME, "utf8")];
                 case 2:
                     file = _a.sent();
                     file = strip_json_comments(file, { whitespace: true });
@@ -95,6 +117,7 @@ function find_all_native_gyps(base_path, level) {
                     _a.label = 5;
                 case 5:
                     if (path.basename(item).toLowerCase() === exports.NATIVE_GYP_FILENAME) {
+                        console.log("scanning ", path.join(base_path, item));
                         native_gyps.push(path.join(base_path, item));
                     }
                     _a.label = 6;
@@ -117,6 +140,7 @@ function read_all_native_gyps(base_path) {
                     return [4 /*yield*/, find_all_native_gyps(base_path, 0)];
                 case 1:
                     gyp_files = _d.sent();
+                    console.log("gyp files found: ", gyp_files);
                     _i = 0, gyp_files_1 = gyp_files;
                     _d.label = 2;
                 case 2:

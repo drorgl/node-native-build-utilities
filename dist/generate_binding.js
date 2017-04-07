@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -36,37 +37,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 exports.__esModule = true;
-var download_accessor_1 = require("./accessors/download-accessor");
-// console.log(process.argv);
-if (process.argv.length < 4) {
-    console.log("usage:");
-    console.log("  download <url> <filename> [--size]");
-    process.exit(0);
-}
-var downloadurl = process.argv[2];
-var filename = process.argv[3];
-var size_only = (process.argv.length > 4 && process.argv[4] === "--size") ? true : false;
-process.on("SIGINT", function () {
-    console.log("Caught interrupt signal");
-    download_accessor_1.cancel(downloadurl);
-});
+var fs = require("fs");
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var _a, _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
-            case 0:
-                if (!size_only) return [3 /*break*/, 2];
-                _b = (_a = console).log;
-                _c = ["size:"];
-                return [4 /*yield*/, download_accessor_1.download_size(downloadurl)];
-            case 1:
-                _b.apply(_a, _c.concat([_d.sent()]));
-                return [3 /*break*/, 3];
-            case 2:
-                download_accessor_1.download(downloadurl, filename, true);
-                _d.label = 3;
-            case 3: return [2 /*return*/];
+    var binding;
+    return __generator(this, function (_a) {
+        if (process.argv.length > 1) {
+            binding = {
+                includes: process.argv.slice(2)
+            };
+            fs.writeFileSync("binding.gyp", JSON.stringify(binding));
         }
+        return [2 /*return*/];
     });
 }); })();
-//# sourceMappingURL=download.js.map
+//# sourceMappingURL=generate_binding.js.map

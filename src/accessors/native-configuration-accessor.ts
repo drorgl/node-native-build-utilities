@@ -1,5 +1,6 @@
 import bluebird = require("bluebird");
 import fs = require("fs");
+import path = require("path");
 import * as nativeGyp from "./native-gyp-accessor";
 
 let writeFile = bluebird.promisify<void, string, any>(fs.writeFile);
@@ -41,6 +42,16 @@ export async function save(filename: string, configuration: INativeConfiguration
 export function load(filename: string): Promise<INativeConfiguration> {
 	return new Promise<INativeConfiguration>(async (resolve, reject) => {
 		try {
+			let limit = 5;
+			while ((!fs.existsSync(filename) && limit > 0)){
+				filename = path.join("..",filename);
+				limit--;
+			}	
+			if (!fs.existsSync(filename)){
+				reject("not found");
+				return;
+			}
+
 			let fileContents = await readFile(filename, "utf8");
 			resolve(JSON.parse(fileContents));
 		} catch (e) {

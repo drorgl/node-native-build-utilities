@@ -138,7 +138,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 				precompiled_header_paths.push(parse_precompiled_source(source.source).path);
 
 				if (source.copy) {
-					precompiled_file_copy.push(parse_precompiled_copy(source).path);
+					precompiled_file_copy.push(parse_precompiled_source(source.copy).path);
 				}
 			}
 
@@ -147,7 +147,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 				precompiled_library_paths.push(parse_precompiled_source(source.source).path);
 
 				if (source.copy) {
-					precompiled_file_copy.push(parse_precompiled_copy(source).path);
+					precompiled_file_copy.push(parse_precompiled_source(source.copy).path);
 				}
 			}
 
@@ -179,7 +179,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			}
 			dependencies_information.dependencies[dependency_name] = {
 				source: "archived_source",
-				gyp_sources: dependency.sources
+				gyp_sources: dependency.archived_sources
 			};
 		}
 
@@ -221,26 +221,34 @@ export async function download_precompiled_sources(precompiled_sources: nativeGy
 	for (let source of precompiled_sources) {
 		if (source.source) {
 			await download_source(source.source, source_path);
-			await extract_source(source.source, source_path);
+			await extract_source_file(path.join(source_path, parse_precompiled_source( source.source).filename), source_path);
 		}
 
 		if (source.copy) {
 			await download_source(source.copy, source_path);
-			await extract_source(source.copy, source_path);
+			await extract_source_file(path.join(source_path, parse_precompiled_source( source.copy).filename), source_path);
 		}
 	}
 }
 
 export async function download_archived_sources(git_repositories: Array<string | nativeGyp.ISource>, source_path: string) {
 	for (let source of git_repositories) {
+		logger.debug("downloading archived source", source);
+
 		let source_archive: string;
 		if ((source as nativeGyp.ISource).source) {
 			source_archive = (source as nativeGyp.ISource).source;
 		} else {
 			source_archive = source as string;
 		}
+
+		let source_archive_file = (source_archive.indexOf("@") !== -1) ? source_archive.substr(0, source_archive.indexOf("@")) : source_archive;
+
+		let extract_path = path.basename(source_archive_file, path.extname(source_archive_file));
+		logger.debug("archive path", source_archive_file, "extract path", extract_path);
+
 		await download_source(source_archive, source_path);
-		await extract_source(source_archive, source_path);
+		await extract_source_file(path.join(source_path, parse_precompiled_source( source_archive).filename), path.join( source_path, extract_path));
 	}
 }
 
@@ -284,25 +292,7 @@ async function download_source(source: string, source_path: string) {
 interface IPrecompiledSourceParsed {
 	url: string;
 	path: string;
-}
-
-function parse_precompiled_copy(source: nativeGyp.IPrecompiledSource): IPrecompiledSourceParsed {
-	if (!source.copy) {
-		return null;
-	}
-
-	let file_url_index = source.copy.lastIndexOf("@");
-	if (file_url_index === -1) {
-		return {
-			url: source.copy,
-			path: ""
-		};
-	}
-
-	return {
-		url: source.copy.substr(0, file_url_index),
-		path: source.copy.substr(file_url_index + 1)
-	};
+	filename: string;
 }
 
 function parse_precompiled_source(source: string): IPrecompiledSourceParsed {
@@ -310,26 +300,29 @@ function parse_precompiled_source(source: string): IPrecompiledSourceParsed {
 	if (file_url_index === -1) {
 		return {
 			url: source,
+			filename: path.basename(url.parse(source).pathname),
 			path: ""
 		};
 	}
 
 	return {
 		url: source.substr(0, file_url_index),
-		path: source.substr(file_url_index + 1)
+		path: source.substr(file_url_index + 1),
+		filename: path.basename(url.parse(source.substr(0, file_url_index)).pathname),
 	};
 }
 
 let _extraction_handled: { [file: string]: boolean } = {};
 
-async function extract_source(source: string, source_path: string) {
-	let parsed = parse_precompiled_source(source);
+async function extract_source_file(filename: string, source_path: string) {
+	logger.debug("extract source", filename, source_path);
+	// let parsed = parse_precompiled_source(source);
 
-	let fileurl = parsed.url;
-	let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
+	// let fileurl = parsed.url;
+	// let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
 
 	// todo: extract copy as well
-	logger.info("extracting", filename, "into", source_path);
+	// logger.info("extracting", filename, "into", source_path);
 	if (!_extraction_handled[filename + source_path]) {
 		await extractFull(filename, source_path);
 		_extraction_handled[filename + source_path] = true;

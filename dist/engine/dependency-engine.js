@@ -154,7 +154,7 @@ function parse_dependencies(native_gyp, configuration) {
                         dependencies_information.precompiled_sources.push(source);
                         precompiled_header_paths.push(parse_precompiled_source(source.source).path);
                         if (source.copy) {
-                            precompiled_file_copy.push(parse_precompiled_copy(source).path);
+                            precompiled_file_copy.push(parse_precompiled_source(source.copy).path);
                         }
                     }
                     for (_c = 0, precompiled_library_sources_1 = precompiled_library_sources; _c < precompiled_library_sources_1.length; _c++) {
@@ -162,7 +162,7 @@ function parse_dependencies(native_gyp, configuration) {
                         dependencies_information.precompiled_sources.push(source);
                         precompiled_library_paths.push(parse_precompiled_source(source.source).path);
                         if (source.copy) {
-                            precompiled_file_copy.push(parse_precompiled_copy(source).path);
+                            precompiled_file_copy.push(parse_precompiled_source(source.copy).path);
                         }
                     }
                     dependencies_information.dependencies[dependency_name] = {
@@ -192,7 +192,7 @@ function parse_dependencies(native_gyp, configuration) {
                     }
                     dependencies_information.dependencies[dependency_name] = {
                         source: "archived_source",
-                        gyp_sources: dependency.sources
+                        gyp_sources: dependency.archived_sources
                     };
                 }
                 if (dependencies_information.dependencies[dependency_name]) {
@@ -242,7 +242,7 @@ function download_precompiled_sources(precompiled_sources, source_path) {
                     return [4 /*yield*/, download_source(source.source, source_path)];
                 case 2:
                     _a.sent();
-                    return [4 /*yield*/, extract_source(source.source, source_path)];
+                    return [4 /*yield*/, extract_source_file(path.join(source_path, parse_precompiled_source(source.source).filename), source_path)];
                 case 3:
                     _a.sent();
                     _a.label = 4;
@@ -251,7 +251,7 @@ function download_precompiled_sources(precompiled_sources, source_path) {
                     return [4 /*yield*/, download_source(source.copy, source_path)];
                 case 5:
                     _a.sent();
-                    return [4 /*yield*/, extract_source(source.copy, source_path)];
+                    return [4 /*yield*/, extract_source_file(path.join(source_path, parse_precompiled_source(source.copy).filename), source_path)];
                 case 6:
                     _a.sent();
                     _a.label = 7;
@@ -266,7 +266,7 @@ function download_precompiled_sources(precompiled_sources, source_path) {
 exports.download_precompiled_sources = download_precompiled_sources;
 function download_archived_sources(git_repositories, source_path) {
     return __awaiter(this, void 0, void 0, function () {
-        var _i, git_repositories_1, source, source_archive;
+        var _i, git_repositories_1, source, source_archive, source_archive_file, extract_path;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -275,6 +275,7 @@ function download_archived_sources(git_repositories, source_path) {
                 case 1:
                     if (!(_i < git_repositories_1.length)) return [3 /*break*/, 5];
                     source = git_repositories_1[_i];
+                    logger.debug("downloading archived source", source);
                     source_archive = void 0;
                     if (source.source) {
                         source_archive = source.source;
@@ -282,10 +283,13 @@ function download_archived_sources(git_repositories, source_path) {
                     else {
                         source_archive = source;
                     }
+                    source_archive_file = (source_archive.indexOf("@") !== -1) ? source_archive.substr(0, source_archive.indexOf("@")) : source_archive;
+                    extract_path = path.basename(source_archive_file, path.extname(source_archive_file));
+                    logger.debug("archive path", source_archive_file, "extract path", extract_path);
                     return [4 /*yield*/, download_source(source_archive, source_path)];
                 case 2:
                     _a.sent();
-                    return [4 /*yield*/, extract_source(source_archive, source_path)];
+                    return [4 /*yield*/, extract_source_file(path.join(source_path, parse_precompiled_source(source_archive).filename), path.join(source_path, extract_path))];
                 case 3:
                     _a.sent();
                     _a.label = 4;
@@ -375,47 +379,28 @@ function download_source(source, source_path) {
         });
     });
 }
-function parse_precompiled_copy(source) {
-    if (!source.copy) {
-        return null;
-    }
-    var file_url_index = source.copy.lastIndexOf("@");
-    if (file_url_index === -1) {
-        return {
-            url: source.copy,
-            path: ""
-        };
-    }
-    return {
-        url: source.copy.substr(0, file_url_index),
-        path: source.copy.substr(file_url_index + 1)
-    };
-}
 function parse_precompiled_source(source) {
     var file_url_index = source.lastIndexOf("@");
     if (file_url_index === -1) {
         return {
             url: source,
+            filename: path.basename(url.parse(source).pathname),
             path: ""
         };
     }
     return {
         url: source.substr(0, file_url_index),
-        path: source.substr(file_url_index + 1)
+        path: source.substr(file_url_index + 1),
+        filename: path.basename(url.parse(source.substr(0, file_url_index)).pathname)
     };
 }
 var _extraction_handled = {};
-function extract_source(source, source_path) {
+function extract_source_file(filename, source_path) {
     return __awaiter(this, void 0, void 0, function () {
-        var parsed, fileurl, filename;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    parsed = parse_precompiled_source(source);
-                    fileurl = parsed.url;
-                    filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
-                    // todo: extract copy as well
-                    logger.info("extracting", filename, "into", source_path);
+                    logger.debug("extract source", filename, source_path);
                     if (!!_extraction_handled[filename + source_path]) return [3 /*break*/, 2];
                     return [4 /*yield*/, archive_1.extractFull(filename, source_path)];
                 case 1:

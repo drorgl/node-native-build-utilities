@@ -17,7 +17,7 @@ export enum LogLevel {
 	error = 3
 }
 
-export let log_level: LogLevel = LogLevel.info;
+export let log_level: LogLevel = LogLevel.debug;
 
 export function log_to_file(filename: string) {
 	_log_to_file = filename;
@@ -26,7 +26,7 @@ export function log_to_file(filename: string) {
 export function debug(message?: any, ...optionalParams: any[]) {
 	if (log_level <= LogLevel.debug) {
 		if (_log_to_console) {
-			console.debug("DEBUG - " + util.format.apply(null, arguments));
+			console.log("DEBUG - " + util.format.apply(null, arguments));
 		}
 		if (_log_to_file) {
 			fs.appendFile(_log_to_file, "DEBUG - " + util.format.apply(null, arguments) + os.EOL);

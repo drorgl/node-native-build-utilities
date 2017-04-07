@@ -16,13 +16,25 @@ interface IDownloadItem {
 	filestream: fs.WriteStream;
 	filename: string;
 	length: number;
+	request: http_.ClientRequest;
 }
 
 let _file_streams: { [downloadurl: string]: IDownloadItem } = {};
 
+process.on("SIGINT", () => {
+	logger.error("Caught interrupt signal");
+	for (let file of Object.keys( _file_streams)) {
+		cancel(_file_streams[file].downloadurl);
+	}
+
+});
+
 export function cancel(downloadurl: string): boolean {
 	let download_item = _file_streams[downloadurl];
 	if (download_item) {
+		logger.info("cancelling ", download_item);
+		download_item.request.abort();
+		download_item.request.end();
 		download_item.filestream.end();
 		fs.unlink(download_item.filename);
 
@@ -80,7 +92,8 @@ export function download(downloadurl: string, filename: string, displayProgress:
 			downloadurl,
 			filename,
 			filestream: null,
-			length: -1
+			length: -1,
+			request: null
 		};
 
 		const downloadurlsplit = url.parse(downloadurl);
@@ -108,13 +121,6 @@ export function download(downloadurl: string, filename: string, displayProgress:
 		let bar: ProgressBar = null;
 		let filesize = 0;
 
-		process.on("SIGINT", () => {
-			logger.error("Caught interrupt signal");
-
-			file.end();
-			fs.unlink(filename);
-		});
-
 		req.on("response", (res: http_.ClientResponse) => {
 			if (res.statusCode === 404) {
 				reject("file not found - " + downloadurl);
@@ -141,10 +147,20 @@ export function download(downloadurl: string, filename: string, displayProgress:
 				process.stdout.write("unknown file size, downloading chunks ");
 			}
 
+			let file_directory = path.dirname(filename);
+			if (!fs.existsSync(file_directory)) {
+				fs.mkdir(file_directory);
+			}
+
 			file = fs.createWriteStream(filename);
+			if (!file) {
+				reject("unable to create file");
+				return;
+			}
 
 			_file_streams[downloadurl].filestream = file;
 			_file_streams[downloadurl].length = len;
+			_file_streams[downloadurl].request = req;
 
 			res.on("data", (chunk) => {
 				if (!_file_streams[downloadurl]) {
@@ -172,8 +188,12 @@ export function download(downloadurl: string, filename: string, displayProgress:
 				}
 				logger.info("downloaded ", filesize, "bytes");
 
-				if (filesize === _file_streams[downloadurl].length) {
-					resolve(true);
+				if (_file_streams[downloadurl] && filesize === _file_streams[downloadurl].length) {
+					delete _file_streams[downloadurl];
+					// adding timeout to let node js flush the file to disk
+					setTimeout(() => {
+						resolve(true);
+					}, 100);
 				} else if (filesize > 0) {
 					resolve(false);
 				} else {

@@ -3,14 +3,26 @@ exports.__esModule = true;
 var ProgressBar = require("progress");
 var url = require("url");
 var fs = require("fs");
-var https = require("https");
-var http = require("http");
+// tslint:disable-next-line:no-var-requires
+var http = require("follow-redirects").http;
+// tslint:disable-next-line:no-var-requires
+var https = require("follow-redirects").https;
 var path = require("path");
 var logger = require("../utilities/logger");
 var _file_streams = {};
+process.on("SIGINT", function () {
+    logger.error("Caught interrupt signal");
+    for (var _i = 0, _a = Object.keys(_file_streams); _i < _a.length; _i++) {
+        var file = _a[_i];
+        cancel(_file_streams[file].downloadurl);
+    }
+});
 function cancel(downloadurl) {
     var download_item = _file_streams[downloadurl];
     if (download_item) {
+        logger.info("cancelling ", download_item);
+        download_item.request.abort();
+        download_item.request.end();
         download_item.filestream.end();
         fs.unlink(download_item.filename);
         delete _file_streams[downloadurl];
@@ -27,7 +39,6 @@ function download_size(downloadurl) {
         var req = null;
         if (downloadurlsplit.protocol === "http:") {
             req = http.request({
-                method: "HEAD",
                 host: downloadurlsplit.host,
                 port: (downloadurlsplit.port) ? parseInt(downloadurlsplit.port) : default_http,
                 path: downloadurlsplit.path
@@ -35,7 +46,6 @@ function download_size(downloadurl) {
         }
         else if (downloadurlsplit.protocol === "https:") {
             req = https.request({
-                method: "HEAD",
                 host: downloadurlsplit.host,
                 port: (downloadurlsplit.port) ? parseInt(downloadurlsplit.port) : default_https,
                 path: downloadurlsplit.path
@@ -46,8 +56,8 @@ function download_size(downloadurl) {
                 reject("file not found - " + downloadurl);
                 return;
             }
-            console.log("statusCode", res.statusCode);
             var len = parseInt(res.headers["content-length"], 10);
+            req.abort();
             resolve(len);
         });
         req.end();
@@ -61,7 +71,8 @@ function download(downloadurl, filename, displayProgress) {
             downloadurl: downloadurl,
             filename: filename,
             filestream: null,
-            length: -1
+            length: -1,
+            request: null
         };
         var downloadurlsplit = url.parse(downloadurl);
         var default_https = 443;
@@ -84,11 +95,6 @@ function download(downloadurl, filename, displayProgress) {
         var file = null;
         var bar = null;
         var filesize = 0;
-        process.on("SIGINT", function () {
-            logger.error("Caught interrupt signal");
-            file.end();
-            fs.unlink(filename);
-        });
         req.on("response", function (res) {
             if (res.statusCode === 404) {
                 reject("file not found - " + downloadurl);
@@ -113,9 +119,18 @@ function download(downloadurl, filename, displayProgress) {
             else {
                 process.stdout.write("unknown file size, downloading chunks ");
             }
+            var file_directory = path.dirname(filename);
+            if (!fs.existsSync(file_directory)) {
+                fs.mkdir(file_directory);
+            }
             file = fs.createWriteStream(filename);
+            if (!file) {
+                reject("unable to create file");
+                return;
+            }
             _file_streams[downloadurl].filestream = file;
             _file_streams[downloadurl].length = len;
+            _file_streams[downloadurl].request = req;
             res.on("data", function (chunk) {
                 if (!_file_streams[downloadurl]) {
                     reject("download cancelled");
@@ -140,8 +155,12 @@ function download(downloadurl, filename, displayProgress) {
                     file.end();
                 }
                 logger.info("downloaded ", filesize, "bytes");
-                if (filesize === _file_streams[downloadurl].length) {
-                    resolve(true);
+                if (_file_streams[downloadurl] && filesize === _file_streams[downloadurl].length) {
+                    delete _file_streams[downloadurl];
+                    // adding timeout to let node js flush the file to disk
+                    setTimeout(function () {
+                        resolve(true);
+                    }, 100);
                 }
                 else if (filesize > 0) {
                     resolve(false);

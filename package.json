@@ -7,7 +7,9 @@
     "nnbu-configure": "dist/native_configure.js",
     "nnbu-publish": "dist/publish-github.js",
     "nnbu-pack": "dist/pack.js",
-    "nnbu-run": "dist/run.js"
+    "nnbu-run": "dist/run.js",
+    "nnbu-check": "dist/check_config.js",
+    "nnbu-generate-binding": "dist/generate_binding.js"
   },
   "main": "index.js",
   "scripts": {
@@ -19,7 +21,8 @@
     "configure": "node-gyp configure",
     "tslint": "tslint -c tslint.json 'src/**/*.ts'",
     "bla": "ts-node src/tmp_test.ts",
-    "download": "ts-node src/download.ts https://github.com/drorgl/opencv.module/releases/download/v3.2.0/opencv.module.v3.2.0.7z bla.7z"
+    "download": "ts-node src/download.ts https://github.com/drorgl/opencv.module/releases/download/v3.2.0/opencv.module.v3.2.0.7z bla.7z",
+    "check": "ts-node src/check_config.ts p1 p2 p3"
   },
   "repository": {
     "type": "git",
@@ -69,7 +72,8 @@
     "semver": "^5.3.0",
     "strip-json-comments": "^2.0.1",
     "ts-node": "^2.1.0",
-    "typescript": "^2.2.1"
+    "typescript": "^2.2.1",
+    "deep-merge": "^1.0.0"
   },
   "devDependencies": {
     "tslint": "^4.5.1",

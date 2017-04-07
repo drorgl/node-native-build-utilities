@@ -16,7 +16,7 @@ var LogLevel;
     LogLevel[LogLevel["warn"] = 2] = "warn";
     LogLevel[LogLevel["error"] = 3] = "error";
 })(LogLevel = exports.LogLevel || (exports.LogLevel = {}));
-exports.log_level = LogLevel.info;
+exports.log_level = LogLevel.debug;
 function log_to_file(filename) {
     _log_to_file = filename;
 }
@@ -28,7 +28,7 @@ function debug(message) {
     }
     if (exports.log_level <= LogLevel.debug) {
         if (exports._log_to_console) {
-            console.debug("DEBUG - " + util.format.apply(null, arguments));
+            console.log("DEBUG - " + util.format.apply(null, arguments));
         }
         if (_log_to_file) {
             fs.appendFile(_log_to_file, "DEBUG - " + util.format.apply(null, arguments) + os.EOL);

@@ -36,6 +36,32 @@ export interface INativeGyp {
 	dependencies: { [dependencyId: string]: IDependency };
 }
 
+// function merge_dependency(depA : IDependency, depB : IDependency) : IDependency{
+// 	let depNew = depA;
+// 	for (let pkg of depB.packages){
+// 		if (depNew.packages.indexOf(pkg) == -1){
+// 			depNew.packages.push(pkg);
+// 		}
+// 	}
+// }
+
+// export function merge(nativeGypA : INativeGyp, nativeGypB : INativeGyp) : INativeGyp{
+// 	if (nativeGypA && nativeGypA.dependencies && (!nativeGypB || !nativeGypB.dependencies)){
+// 		return nativeGypA;
+// 	}else if (nativeGypB && nativeGypB.dependencies && (!nativeGypA || !nativeGypA.dependencies)){
+// 		return nativeGypB;
+// 	}
+
+// 	let ngNew = nativeGypA;
+// 	for (let depId of Object.keys(nativeGypB.dependencies)){
+// 		if (!ngNew.dependencies[depId]){
+// 			ngNew.dependencies[depId] = nativeGypB.dependencies[depId];
+// 		}else{
+
+// 		}
+// 	}
+// }
+
 export async function exists(): Promise<boolean> {
 	return pfs.exists(NATIVE_GYP_FILENAME);
 }
@@ -45,7 +71,7 @@ export async function read(filename?: string): Promise<INativeGyp> {
 		throw new Error("file not found");
 	}
 
-	let file = await pfs.readFile(NATIVE_GYP_FILENAME, "utf8");
+	let file = await pfs.readFile(filename || NATIVE_GYP_FILENAME, "utf8");
 	file = strip_json_comments(file, { whitespace: true });
 	return <INativeGyp> JSON.parse(file);
 }
@@ -63,6 +89,7 @@ export async function find_all_native_gyps(base_path: string, level?: number): P
 			}
 		}
 		if (path.basename(item).toLowerCase() === NATIVE_GYP_FILENAME) {
+			console.log("scanning ", path.join(base_path, item));
 			native_gyps.push(path.join(base_path, item));
 		}
 	}
@@ -72,6 +99,7 @@ export async function find_all_native_gyps(base_path: string, level?: number): P
 export async function read_all_native_gyps(base_path: string): Promise<INativeGyp[]> {
 	let native_gyps: INativeGyp[] = [];
 	let gyp_files = await find_all_native_gyps(base_path, 0);
+	console.log("gyp files found: ", gyp_files);
 	for (let file of gyp_files) {
 		native_gyps.push(await read(file));
 	}

@@ -98,7 +98,7 @@ logger.info("arguments", process.argv);
                 if (commander["dependency"]) {
                     dep = native_configuration.dependencies[commander["dependency"]];
                     if (dep) {
-                        if (dep.source === "source") {
+                        if (dep.source === "source" || dep.source === "archived_source") {
                             gyp_sources = "";
                             for (_i = 0, _a = dep.gyp_sources; _i < _a.length; _i++) {
                                 gyp_src = _a[_i];

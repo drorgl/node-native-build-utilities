@@ -70,7 +70,7 @@ logger.info("arguments", process.argv);
 		if (commander["dependency"]) {
 			let dep = native_configuration.dependencies[commander["dependency"]];
 			if (dep) {
-				if (dep.source === "source") {
+				if (dep.source === "source" || dep.source === "archived_source") {
 					let gyp_sources = "";
 					for (let gyp_src of dep.gyp_sources) {
 						let gyp_source = dependencyEngine.gyp_source_parse(gyp_src);

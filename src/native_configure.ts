@@ -12,6 +12,7 @@ import * as dependencyEngine from "./engine/dependency-engine";
 
 import * as nativeConfiguration from "./accessors/native-configuration-accessor";
 import * as logger from "./utilities/logger";
+import * as merger from "./utilities/object_utilities";
 
 let default_toolset: string = null;
 let default_toolset_version: string = null;
@@ -106,34 +107,71 @@ if (!detection.z7_version) {
 			arch: selected_arch,
 			toolset: selected_toolset,
 			toolset_version: selected_toolset_version,
-			source_path: default_source_path
+			source_path: default_source_path,
+			dependencies : {}
 		};
 
-		let configured_dependencies: dependencyEngine.IDependenciesInformation;
+		let last_configured_dependencies: dependencyEngine.IDependenciesInformation = null;
 
-		for (let native_gyp of native_gyps) {
-			configured_dependencies = Object.assign(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
-		}
-		configuration.dependencies = configured_dependencies.dependencies;
+		//let configured_dependencies: dependencyEngine.IDependenciesInformation;
 
-		logger.info("configuration:", configuration);
+		// let native_gyp : nativeGyp.INativeGyp;
 
-		if (configured_dependencies.precompiled_sources, default_source_path && configured_dependencies.precompiled_sources, default_source_path.length > 0) {
-			logger.info("preparing precompiled dependencies..");
-			await dependencyEngine.download_precompiled_sources(configured_dependencies.precompiled_sources, default_source_path);
-			logger.info("done");
-		}
+		// for (let current_native_gyp of native_gyps) {
+		// 	native_gyp =  merger.merge<nativeGyp.INativeGyp>(native_gyp || {}, current_native_gyp);
+		// }
 
-		if (configured_dependencies.archived_sources && configured_dependencies.archived_sources.length) {
-			logger.info("preparing archived source dependencies...");
-			await dependencyEngine.download_archived_sources(configured_dependencies.archived_sources, default_source_path);
-			logger.info("done");
-		}
+		
 
-		if (configured_dependencies.git_repositories && configured_dependencies.git_repositories.length) {
-			logger.info("preparing source dependencies..");
-			await dependencyEngine.clone_git_sources(configured_dependencies.git_repositories, default_source_path);
-			logger.info("done");
+		let rescan_iteration = 1;
+
+		for (let native_gyp of native_gyps){
+			console.log("processing ", native_gyp);
+		// while (JSON.stringify(configured_dependencies) !== JSON.stringify(last_configured_dependencies)) {
+			//configured_dependencies = merger.merge<dependencyEngine.IDependenciesInformation>(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
+
+			//configuration.dependencies = configured_dependencies.dependencies;
+			let configured_dependencies = await dependencyEngine.parse_dependencies(native_gyp, configuration);
+			configuration.dependencies = merger.merge<nativeConfiguration.IDependencies>(configuration.dependencies , configured_dependencies.dependencies);
+
+			logger.info("configuration:", configuration);
+
+			if (configured_dependencies.precompiled_sources, default_source_path && configured_dependencies.precompiled_sources, default_source_path.length > 0) {
+				logger.info("preparing precompiled dependencies..");
+				await dependencyEngine.download_precompiled_sources(configured_dependencies.precompiled_sources, default_source_path);
+				logger.info("done");
+			}
+
+			if (configured_dependencies.archived_sources && configured_dependencies.archived_sources.length) {
+				logger.info("preparing archived source dependencies...");
+				await dependencyEngine.download_archived_sources(configured_dependencies.archived_sources, default_source_path);
+				logger.info("done");
+			}
+
+			if (configured_dependencies.git_repositories && configured_dependencies.git_repositories.length) {
+				logger.info("preparing source dependencies..");
+				await dependencyEngine.clone_git_sources(configured_dependencies.git_repositories, default_source_path);
+				logger.info("done");
+			}
+
+			// rescan dependencies until done
+			//last_configured_dependencies = configured_dependencies;
+
+			//native_gyps = await nativeGyp.read_all_native_gyps("./");
+
+			// for (let current_native_gyp of native_gyps) {
+			// 	native_gyp =  merger.merge<nativeGyp.INativeGyp>(native_gyp || {}, current_native_gyp);
+			// }
+
+			//console.log("native gyp", native_gyp);
+
+			//configured_dependencies = merger.merge<dependencyEngine.IDependenciesInformation>(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
+			rescan_iteration++;
+
+			if (rescan_iteration > 10) {
+				logger.warn("maximum rescan iteration reached, dependency tree might not be complete");
+				break;
+			}
 		}
 
 		await nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration);
