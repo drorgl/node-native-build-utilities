@@ -38,6 +38,7 @@ exports.__esModule = true;
 var bluebird = require("bluebird");
 var fs = require("fs");
 var path = require("path");
+var pfs = require("../utilities/promisified_fs");
 var writeFile = bluebird.promisify(fs.writeFile);
 var readFile = bluebird.promisify(fs.readFile);
 exports.NATIVE_CONFIGURATION_FILE = "native_configuration.json";
@@ -54,36 +55,47 @@ function save(filename, configuration) {
     });
 }
 exports.save = save;
-function load(filename) {
+function find_native_configuration_file(filename) {
     var _this = this;
     return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-        var limit, fileContents, e_1;
+        var limit;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
                     limit = 5;
-                    while ((!fs.existsSync(filename) && limit > 0)) {
-                        filename = path.join("..", filename);
-                        limit--;
-                    }
-                    if (!fs.existsSync(filename)) {
-                        reject("not found");
-                        return [2 /*return*/];
-                    }
-                    return [4 /*yield*/, readFile(filename, "utf8")];
-                case 1:
-                    fileContents = _a.sent();
-                    resolve(JSON.parse(fileContents));
-                    return [3 /*break*/, 3];
+                    _a.label = 1;
+                case 1: return [4 /*yield*/, pfs.exists(filename)];
                 case 2:
-                    e_1 = _a.sent();
-                    reject(e_1);
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    if (!((!(_a.sent())) && limit > 0)) return [3 /*break*/, 3];
+                    filename = path.join("..", filename);
+                    limit--;
+                    return [3 /*break*/, 1];
+                case 3: return [4 /*yield*/, pfs.exists(filename)];
+                case 4:
+                    if (_a.sent()) {
+                        resolve(filename);
+                    }
+                    else {
+                        reject("not found");
+                    }
+                    return [2 /*return*/];
             }
         });
     }); });
+}
+exports.find_native_configuration_file = find_native_configuration_file;
+function load(filename) {
+    return __awaiter(this, void 0, void 0, function () {
+        var fileContents;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, readFile(filename, "utf8")];
+                case 1:
+                    fileContents = _a.sent();
+                    return [2 /*return*/, JSON.parse(fileContents)];
+            }
+        });
+    });
 }
 exports.load = load;
 //# sourceMappingURL=native-configuration-accessor.js.map

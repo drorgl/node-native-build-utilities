@@ -79,17 +79,21 @@ if (commander["dependency"] || commander["headers"] || commander["libs"] || comm
 }
 logger.info("arguments", process.argv);
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var native_configuration, native_gyp, dep, gyp_sources, _i, _a, gyp_src, gyp_source, dep, pkg_configs, _b, _c, pkg_source, headers, _d, _e, header, dep, pkg_configs, _f, _g, pkg_source, libraries, _h, _j, header, dep, files, _k, _l, file, e_1;
+    var native_configuration_filename, root_configuration, native_configuration, native_gyp, dep, gyp_sources, _i, _a, gyp_src, gyp_source, dep, pkg_configs, _b, _c, pkg_source, headers, _d, _e, header, dep, pkg_configs, _f, _g, pkg_source, libraries, _h, _j, header, dep, files, _k, _l, file, e_1;
     return __generator(this, function (_m) {
         switch (_m.label) {
             case 0:
-                _m.trys.push([0, 2, , 3]);
+                _m.trys.push([0, 3, , 4]);
                 if (!nativeGyp.exists()) {
                     logger.error(nativeGyp.NATIVE_GYP_FILENAME, "not found, nothing to do");
                     process.exit(0);
                 }
-                return [4 /*yield*/, nativeConfiguration.load(nativeConfiguration.NATIVE_CONFIGURATION_FILE)];
+                return [4 /*yield*/, nativeConfiguration.find_native_configuration_file(nativeConfiguration.NATIVE_CONFIGURATION_FILE)];
             case 1:
+                native_configuration_filename = _m.sent();
+                root_configuration = path.dirname(native_configuration_filename);
+                return [4 /*yield*/, nativeConfiguration.load(native_configuration_filename)];
+            case 2:
                 native_configuration = _m.sent();
                 native_gyp = nativeGyp.read();
                 if (commander["sourcePath"]) {
@@ -103,7 +107,7 @@ logger.info("arguments", process.argv);
                             for (_i = 0, _a = dep.gyp_sources; _i < _a.length; _i++) {
                                 gyp_src = _a[_i];
                                 gyp_source = dependencyEngine.gyp_source_parse(gyp_src);
-                                gyp_sources += " " + normalize_path(path.join(native_configuration.source_path, path.basename(gyp_source.source, path.extname(gyp_source.source)), gyp_source.gyp_file)) + ":" + gyp_source.gyp_target;
+                                gyp_sources += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, path.basename(gyp_source.source, path.extname(gyp_source.source)), gyp_source.gyp_file)) + ":" + gyp_source.gyp_target;
                             }
                             console.log(gyp_sources);
                         }
@@ -124,7 +128,7 @@ logger.info("arguments", process.argv);
                             headers = "";
                             for (_d = 0, _e = dep.pre_headers; _d < _e.length; _d++) {
                                 header = _e[_d];
-                                headers += " " + normalize_path(path.join(native_configuration.source_path, header));
+                                headers += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, header));
                             }
                             console.log(headers);
                         }
@@ -148,7 +152,7 @@ logger.info("arguments", process.argv);
                             libraries = "";
                             for (_h = 0, _j = dep.pre_libraries; _h < _j.length; _h++) {
                                 header = _j[_h];
-                                libraries += " " + normalize_path(path.join((commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
+                                libraries += " " + normalize_path(path.join(root_configuration, (commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
                             }
                             console.log(libraries);
                         }
@@ -167,7 +171,7 @@ logger.info("arguments", process.argv);
                             files = "";
                             for (_k = 0, _l = dep.copy; _k < _l.length; _k++) {
                                 file = _l[_k];
-                                files += " " + normalize_path(path.join(native_configuration.source_path, file));
+                                files += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, file));
                             }
                             console.log(files);
                         }
@@ -176,13 +180,13 @@ logger.info("arguments", process.argv);
                         }
                     }
                 }
-                return [3 /*break*/, 3];
-            case 2:
+                return [3 /*break*/, 4];
+            case 3:
                 e_1 = _m.sent();
                 logger.error("error executing dependency tracker", e_1, e_1.stackTrace);
                 process.exit(1);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); })();

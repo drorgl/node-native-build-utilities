@@ -1,6 +1,7 @@
 import bluebird = require("bluebird");
 import fs = require("fs");
 import path = require("path");
+import * as pfs from "../utilities/promisified_fs";
 import * as nativeGyp from "./native-gyp-accessor";
 
 let writeFile = bluebird.promisify<void, string, any>(fs.writeFile);
@@ -39,23 +40,23 @@ export async function save(filename: string, configuration: INativeConfiguration
 	await writeFile(filename, JSON.stringify(configuration, null, "\t"));
 }
 
-export function load(filename: string): Promise<INativeConfiguration> {
-	return new Promise<INativeConfiguration>(async (resolve, reject) => {
-		try {
-			let limit = 5;
-			while ((!fs.existsSync(filename) && limit > 0)){
-				filename = path.join("..",filename);
-				limit--;
-			}	
-			if (!fs.existsSync(filename)){
-				reject("not found");
-				return;
-			}
+export function find_native_configuration_file(filename: string): Promise<string> {
+	return new Promise<string>(async (resolve, reject) => {
+		let limit = 5;
+		while ((!await pfs.exists(filename)) && limit > 0) {
+			filename = path.join("..", filename);
+			limit--;
+		}
 
-			let fileContents = await readFile(filename, "utf8");
-			resolve(JSON.parse(fileContents));
-		} catch (e) {
-			reject(e);
+		if (await pfs.exists(filename)) {
+			resolve(filename);
+		} else {
+			reject("not found");
 		}
 	});
+}
+
+export async function load(filename: string): Promise<INativeConfiguration> {
+	let fileContents = await readFile(filename, "utf8");
+	return JSON.parse(fileContents);
 }
