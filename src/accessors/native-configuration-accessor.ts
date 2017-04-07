@@ -10,7 +10,7 @@ let readFile = bluebird.promisify<string, string, string>(fs.readFile);
 export const NATIVE_CONFIGURATION_FILE = "native_configuration.json";
 
 export interface IConfiguredDependency {
-	source: string;
+	source: string | string[];
 
 	packages?: string[];
 	pkg_includes?: string[];

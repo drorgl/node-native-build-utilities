@@ -55,12 +55,13 @@ logger.info("arguments", process.argv);
 
 (async () => {
 	try {
-		if (!nativeGyp.exists()) {
-			logger.error(nativeGyp.NATIVE_GYP_FILENAME, "not found, nothing to do");
-			process.exit(0);
-		}
+		// if (!await nativeGyp.exists()) {
+		// 	logger.error(nativeGyp.NATIVE_GYP_FILENAME, "not found, nothing to do");
+		// 	process.exit(0);
+		// }
 
 		let native_configuration_filename = await nativeConfiguration.find_native_configuration_file(nativeConfiguration.NATIVE_CONFIGURATION_FILE);
+		logger.debug("found native configuration", native_configuration_filename);
 
 		let root_configuration = path.dirname(native_configuration_filename);
 
@@ -74,7 +75,8 @@ logger.info("arguments", process.argv);
 		if (commander["dependency"]) {
 			let dep = native_configuration.dependencies[commander["dependency"]];
 			if (dep) {
-				if (dep.source === "source" || dep.source === "archived_source") {
+				logger.debug("looking for dependency", dep);
+				if (dep.source === "source" || dep.source === "archived_source" || (dep.source.indexOf("source") !== -1 ) || (dep.source.indexOf("archived_source") !== -1)) {
 					let gyp_sources = "";
 					for (let gyp_src of dep.gyp_sources) {
 						let gyp_source = dependencyEngine.gyp_source_parse(gyp_src);
@@ -88,14 +90,15 @@ logger.info("arguments", process.argv);
 		if (commander["headers"]) {
 			let dep = native_configuration.dependencies[commander["headers"]];
 			if (dep) {
-				if (dep.source === "pkg-config") {
+				logger.debug("looking for headers", dep);
+				if (dep.source === "pkg-config" || (dep.source.indexOf("pkg-config") !== -1)) {
 					// iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
 					let pkg_configs = "";
 					for (let pkg_source of dep.pkg_includes) {
 						pkg_configs += " " + pkg_source;
 					}
 					console.log(pkg_configs);
-				} else if (dep.source === "prebuilt") {
+				} else if (dep.source === "prebuilt" || (dep.source.indexOf("prebuilt") !== -1)) {
 					// iterate through headers in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
 					let headers = "";
 					for (let header of dep.pre_headers) {
@@ -103,7 +106,7 @@ logger.info("arguments", process.argv);
 					}
 
 					console.log(headers);
-				} else if (dep.source === "source") {
+				} else if (dep.source === "source"  || (dep.source.indexOf("source") !== -1)) {
 					// ignore, should be handled by "dependency" section
 				}
 			}
@@ -112,22 +115,24 @@ logger.info("arguments", process.argv);
 		if (commander["libs"]) {
 			let dep = native_configuration.dependencies[commander["libs"]];
 			if (dep) {
-				if (dep.source === "pkg-config") {
+				logger.debug("looking for libraries", dep);
+				if (dep.source === "pkg-config" || (dep.source.indexOf("pkg-config") !== -1)) {
 					// iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
 					let pkg_configs = "";
 					for (let pkg_source of dep.pkg_libraries) {
 						pkg_configs += " " + pkg_source;
 					}
 					console.log(pkg_configs);
-				} else if (dep.source === "prebuilt") {
+				} else if (dep.source === "prebuilt"  || (dep.source.indexOf("prebuilt") !== -1)) {
 					// iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
 					let libraries = "";
 					for (let header of dep.pre_libraries) {
+						logger.debug("header", header);
 						libraries += " " + normalize_path(path.join(root_configuration, (commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
 					}
 
 					console.log(libraries);
-				} else if (dep.source === "source") {
+				} else if (dep.source === "source" || (dep.source.indexOf("source") !== -1)) {
 					// ignore, should be handled by "dependency" section
 				}
 			}
@@ -136,17 +141,19 @@ logger.info("arguments", process.argv);
 		if (commander["copy"]) {
 			let dep = native_configuration.dependencies[commander["copy"]];
 			if (dep) {
-				if (dep.source === "pkg-config") {
+				logger.debug("looking for copy", dep);
+				if (dep.source === "pkg-config" || (dep.source.indexOf("pkg-config") !== -1)) {
 					// nothing to do
-				} else if (dep.source === "prebuilt") {
+				} else if (dep.source === "prebuilt" || (dep.source.indexOf("prebuilt") !== -1)) {
 					// iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
 					let files = "";
 					for (let file of dep.copy) {
+						logger.debug("copy", file);
 						files += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, file));
 					}
 
 					console.log(files);
-				} else if (dep.source === "source") {
+				} else if (dep.source === "source" || (dep.source.indexOf("source") !== -1)) {
 					// ignore, should be handled by "dependency" section
 				}
 			}

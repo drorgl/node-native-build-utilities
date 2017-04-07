@@ -84,13 +84,10 @@ logger.info("arguments", process.argv);
         switch (_m.label) {
             case 0:
                 _m.trys.push([0, 3, , 4]);
-                if (!nativeGyp.exists()) {
-                    logger.error(nativeGyp.NATIVE_GYP_FILENAME, "not found, nothing to do");
-                    process.exit(0);
-                }
                 return [4 /*yield*/, nativeConfiguration.find_native_configuration_file(nativeConfiguration.NATIVE_CONFIGURATION_FILE)];
             case 1:
                 native_configuration_filename = _m.sent();
+                logger.debug("found native configuration", native_configuration_filename);
                 root_configuration = path.dirname(native_configuration_filename);
                 return [4 /*yield*/, nativeConfiguration.load(native_configuration_filename)];
             case 2:
@@ -102,7 +99,8 @@ logger.info("arguments", process.argv);
                 if (commander["dependency"]) {
                     dep = native_configuration.dependencies[commander["dependency"]];
                     if (dep) {
-                        if (dep.source === "source" || dep.source === "archived_source") {
+                        logger.debug("looking for dependency", dep);
+                        if (dep.source === "source" || dep.source === "archived_source" || (dep.source.indexOf("source") !== -1) || (dep.source.indexOf("archived_source") !== -1)) {
                             gyp_sources = "";
                             for (_i = 0, _a = dep.gyp_sources; _i < _a.length; _i++) {
                                 gyp_src = _a[_i];
@@ -116,7 +114,8 @@ logger.info("arguments", process.argv);
                 if (commander["headers"]) {
                     dep = native_configuration.dependencies[commander["headers"]];
                     if (dep) {
-                        if (dep.source === "pkg-config") {
+                        logger.debug("looking for headers", dep);
+                        if (dep.source === "pkg-config" || (dep.source.indexOf("pkg-config") !== -1)) {
                             pkg_configs = "";
                             for (_b = 0, _c = dep.pkg_includes; _b < _c.length; _b++) {
                                 pkg_source = _c[_b];
@@ -124,7 +123,7 @@ logger.info("arguments", process.argv);
                             }
                             console.log(pkg_configs);
                         }
-                        else if (dep.source === "prebuilt") {
+                        else if (dep.source === "prebuilt" || (dep.source.indexOf("prebuilt") !== -1)) {
                             headers = "";
                             for (_d = 0, _e = dep.pre_headers; _d < _e.length; _d++) {
                                 header = _e[_d];
@@ -132,7 +131,7 @@ logger.info("arguments", process.argv);
                             }
                             console.log(headers);
                         }
-                        else if (dep.source === "source") {
+                        else if (dep.source === "source" || (dep.source.indexOf("source") !== -1)) {
                             // ignore, should be handled by "dependency" section
                         }
                     }
@@ -140,7 +139,8 @@ logger.info("arguments", process.argv);
                 if (commander["libs"]) {
                     dep = native_configuration.dependencies[commander["libs"]];
                     if (dep) {
-                        if (dep.source === "pkg-config") {
+                        logger.debug("looking for libraries", dep);
+                        if (dep.source === "pkg-config" || (dep.source.indexOf("pkg-config") !== -1)) {
                             pkg_configs = "";
                             for (_f = 0, _g = dep.pkg_libraries; _f < _g.length; _f++) {
                                 pkg_source = _g[_f];
@@ -148,15 +148,16 @@ logger.info("arguments", process.argv);
                             }
                             console.log(pkg_configs);
                         }
-                        else if (dep.source === "prebuilt") {
+                        else if (dep.source === "prebuilt" || (dep.source.indexOf("prebuilt") !== -1)) {
                             libraries = "";
                             for (_h = 0, _j = dep.pre_libraries; _h < _j.length; _h++) {
                                 header = _j[_h];
+                                logger.debug("header", header);
                                 libraries += " " + normalize_path(path.join(root_configuration, (commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
                             }
                             console.log(libraries);
                         }
-                        else if (dep.source === "source") {
+                        else if (dep.source === "source" || (dep.source.indexOf("source") !== -1)) {
                             // ignore, should be handled by "dependency" section
                         }
                     }
@@ -164,18 +165,20 @@ logger.info("arguments", process.argv);
                 if (commander["copy"]) {
                     dep = native_configuration.dependencies[commander["copy"]];
                     if (dep) {
-                        if (dep.source === "pkg-config") {
+                        logger.debug("looking for copy", dep);
+                        if (dep.source === "pkg-config" || (dep.source.indexOf("pkg-config") !== -1)) {
                             // nothing to do
                         }
-                        else if (dep.source === "prebuilt") {
+                        else if (dep.source === "prebuilt" || (dep.source.indexOf("prebuilt") !== -1)) {
                             files = "";
                             for (_k = 0, _l = dep.copy; _k < _l.length; _k++) {
                                 file = _l[_k];
+                                logger.debug("copy", file);
                                 files += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, file));
                             }
                             console.log(files);
                         }
-                        else if (dep.source === "source") {
+                        else if (dep.source === "source" || (dep.source.indexOf("source") !== -1)) {
                             // ignore, should be handled by "dependency" section
                         }
                     }
