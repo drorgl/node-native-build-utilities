@@ -95,10 +95,12 @@ if (!detection.z7_version) {
 }
 function attempt_prebuilt_install(selected_platform, selected_arch) {
     return __awaiter(this, void 0, void 0, function () {
-        var current_native_gyp, version_info, package_name, github_accessor, repo, package_filename, result;
+        var current_native_gyp, version_info, package_name, github_accessor, repo, package_filename, result, e_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, nativeGyp.read()];
+                case 0:
+                    logger.info("attempting to download a prebuilt binary");
+                    return [4 /*yield*/, nativeGyp.read()];
                 case 1:
                     current_native_gyp = _a.sent();
                     return [4 /*yield*/, abiReleases.get_current_node_version()];
@@ -114,20 +116,25 @@ function attempt_prebuilt_install(selected_platform, selected_arch) {
                     github_accessor = new githubAccessor.GitHubAccessor();
                     repo = packageAccessor.parse_repository();
                     package_filename = path.join(default_source_path, package_name);
-                    try {
-                        result = github_accessor.download_asset(repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename);
-                    }
-                    catch (e) {
-                        logger.error("unable to retrieve dependency, fallback to build");
-                        return [2 /*return*/, false];
-                    }
-                    return [4 /*yield*/, pfs.exists(package_filename)];
+                    logger.info("downloading", repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename);
+                    _a.label = 3;
                 case 3:
+                    _a.trys.push([3, 5, , 6]);
+                    return [4 /*yield*/, github_accessor.download_asset(repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename)];
+                case 4:
+                    result = _a.sent();
+                    return [3 /*break*/, 6];
+                case 5:
+                    e_1 = _a.sent();
+                    logger.error("unable to retrieve dependency, fallback to build");
+                    return [2 /*return*/, false];
+                case 6: return [4 /*yield*/, pfs.exists(package_filename)];
+                case 7:
                     if (!(_a.sent())) {
                         return [2 /*return*/, false];
                     }
                     return [4 /*yield*/, archive_1.extractFull(package_filename, path.normalize("./"))];
-                case 4:
+                case 8:
                     _a.sent();
                     return [2 /*return*/];
             }
@@ -135,7 +142,7 @@ function attempt_prebuilt_install(selected_platform, selected_arch) {
     });
 }
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var native_gyps, platforms, selected_platform, architectures, selected_arch, toolsets, selected_toolset, selected_toolset_version, result, configuration, last_configured_dependencies, last_native_gyps, rescan_iteration, _i, native_gyps_1, native_gyp, configured_dependencies, e_1;
+    var native_gyps, platforms, selected_platform, architectures, selected_arch, toolsets, selected_toolset, selected_toolset_version, result, configuration, last_configured_dependencies, last_native_gyps, rescan_iteration, _i, native_gyps_1, native_gyp, configured_dependencies, e_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -260,8 +267,8 @@ function attempt_prebuilt_install(selected_platform, selected_arch) {
                 _a.sent();
                 return [3 /*break*/, 24];
             case 23:
-                e_1 = _a.sent();
-                logger.error("unable to configure", e_1, e_1.stackTrace);
+                e_2 = _a.sent();
+                logger.error("unable to configure", e_2, e_2.stackTrace);
                 process.exit(1);
                 return [3 /*break*/, 24];
             case 24: return [2 /*return*/];

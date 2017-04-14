@@ -71,6 +71,7 @@ if (!detection.z7_version) {
 }
 
 async function attempt_prebuilt_install(selected_platform: string, selected_arch: string) {
+	logger.info("attempting to download a prebuilt binary");
 	let current_native_gyp = await nativeGyp.read();
 
 	let version_info = await abiReleases.get_current_node_version();
@@ -88,8 +89,9 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 	let package_filename = path.join(default_source_path, package_name);
 
+	logger.info("downloading", repo.username, repo.repo,packageAccessor.node_package.version, package_name, package_filename);
 	try {
-		let result = github_accessor.download_asset(repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename);
+		let result = await github_accessor.download_asset(repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename);
 	} catch (e) {
 		logger.error("unable to retrieve dependency, fallback to build");
 		return false;
