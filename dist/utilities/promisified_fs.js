@@ -179,7 +179,7 @@ function human_file_size(bytes, si) {
 exports.human_file_size = human_file_size;
 function list_folder_by_pattern(pattern) {
     return new Promise(function (resolve, reject) {
-        glob("**/*.js", {}, function (er, files) {
+        glob(pattern, {}, function (er, files) {
             if (er) {
                 reject(er);
                 return;

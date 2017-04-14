@@ -126,7 +126,7 @@ function attempt_prebuilt_install(selected_platform, selected_arch) {
                     if (!(_a.sent())) {
                         return [2 /*return*/, false];
                     }
-                    return [4 /*yield*/, archive_1.extractFull(package_filename, path.join("./", "build/Release"))];
+                    return [4 /*yield*/, archive_1.extractFull(package_filename, path.normalize("./"))];
                 case 4:
                     _a.sent();
                     return [2 /*return*/];

@@ -99,7 +99,7 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 		return false;
 	}
 
-	await extractFull(package_filename, path.join("./", "build/Release"));
+	await extractFull(package_filename, path.normalize("./"));
 }
 
 (async () => {
