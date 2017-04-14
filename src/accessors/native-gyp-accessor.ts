@@ -33,6 +33,8 @@ interface IDependency {
 }
 
 export interface INativeGyp {
+	node_gyp_configure_parameters?: string;
+	node_gyp_build_parameters? : string;
 	dependencies: { [dependencyId: string]: IDependency };
 }
 

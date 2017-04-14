@@ -85,11 +85,11 @@ if (!detection.z7_version) {
     process.exit(1);
 }
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var native_gyps, platforms, selected_platform, architectures, selected_arch, toolsets, selected_toolset, selected_toolset_version, configuration, last_configured_dependencies, rescan_iteration, _i, native_gyps_1, native_gyp, configured_dependencies, e_1;
+    var native_gyps, platforms, selected_platform, architectures, selected_arch, toolsets, selected_toolset, selected_toolset_version, configuration, last_configured_dependencies, last_native_gyps, rescan_iteration, _i, native_gyps_1, native_gyp, configured_dependencies, e_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 13, , 14]);
+                _a.trys.push([0, 16, , 17]);
                 return [4 /*yield*/, nativeGyp.read_all_native_gyps("./")];
             case 1:
                 native_gyps = _a.sent();
@@ -130,69 +130,79 @@ if (!detection.z7_version) {
                     dependencies: {}
                 };
                 last_configured_dependencies = null;
+                last_native_gyps = void 0;
                 rescan_iteration = 1;
-                _i = 0, native_gyps_1 = native_gyps;
                 _a.label = 2;
             case 2:
-                if (!(_i < native_gyps_1.length)) return [3 /*break*/, 11];
+                if (!(JSON.stringify(last_native_gyps) !== JSON.stringify(native_gyps) && rescan_iteration < 11)) return [3 /*break*/, 14];
+                _i = 0, native_gyps_1 = native_gyps;
+                _a.label = 3;
+            case 3:
+                if (!(_i < native_gyps_1.length)) return [3 /*break*/, 12];
                 native_gyp = native_gyps_1[_i];
                 console.log("processing ", native_gyp);
                 return [4 /*yield*/, dependencyEngine.parse_dependencies(native_gyp, configuration)];
-            case 3:
+            case 4:
                 configured_dependencies = _a.sent();
                 configuration.dependencies = merger.merge(configuration.dependencies, configured_dependencies.dependencies);
                 logger.info("configuration:", configuration);
-                if (!(configured_dependencies.precompiled_sources, default_source_path && configured_dependencies.precompiled_sources, default_source_path.length > 0)) return [3 /*break*/, 5];
+                if (!(configured_dependencies.precompiled_sources, default_source_path && configured_dependencies.precompiled_sources, default_source_path.length > 0)) return [3 /*break*/, 6];
                 logger.info("preparing precompiled dependencies..");
                 return [4 /*yield*/, dependencyEngine.download_precompiled_sources(configured_dependencies.precompiled_sources, default_source_path)];
-            case 4:
+            case 5:
                 _a.sent();
                 logger.info("done");
-                _a.label = 5;
-            case 5:
-                if (!(configured_dependencies.archived_sources && configured_dependencies.archived_sources.length)) return [3 /*break*/, 7];
+                _a.label = 6;
+            case 6:
+                if (!(configured_dependencies.archived_sources && configured_dependencies.archived_sources.length)) return [3 /*break*/, 8];
                 logger.info("preparing archived source dependencies...");
                 return [4 /*yield*/, dependencyEngine.download_archived_sources(configured_dependencies.archived_sources, default_source_path)];
-            case 6:
+            case 7:
                 _a.sent();
                 logger.info("done");
-                _a.label = 7;
-            case 7:
-                if (!(configured_dependencies.git_repositories && configured_dependencies.git_repositories.length)) return [3 /*break*/, 9];
+                _a.label = 8;
+            case 8:
+                if (!(configured_dependencies.git_repositories && configured_dependencies.git_repositories.length)) return [3 /*break*/, 10];
                 logger.info("preparing source dependencies..");
                 return [4 /*yield*/, dependencyEngine.clone_git_sources(configured_dependencies.git_repositories, default_source_path)];
-            case 8:
+            case 9:
                 _a.sent();
                 logger.info("done");
-                _a.label = 9;
-            case 9:
+                _a.label = 10;
+            case 10:
                 // rescan dependencies until done
-                //last_configured_dependencies = configured_dependencies;
-                //native_gyps = await nativeGyp.read_all_native_gyps("./");
+                // last_configured_dependencies = configured_dependencies;
+                // native_gyps = await nativeGyp.read_all_native_gyps("./");
                 // for (let current_native_gyp of native_gyps) {
                 // 	native_gyp =  merger.merge<nativeGyp.INativeGyp>(native_gyp || {}, current_native_gyp);
                 // }
-                //console.log("native gyp", native_gyp);
-                //configured_dependencies = merger.merge<dependencyEngine.IDependenciesInformation>(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
+                // console.log("native gyp", native_gyp);
+                // configured_dependencies = merger.merge<dependencyEngine.IDependenciesInformation>(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
                 rescan_iteration++;
                 if (rescan_iteration > 10) {
                     logger.warn("maximum rescan iteration reached, dependency tree might not be complete");
-                    return [3 /*break*/, 11];
+                    return [3 /*break*/, 12];
                 }
-                _a.label = 10;
-            case 10:
+                _a.label = 11;
+            case 11:
                 _i++;
-                return [3 /*break*/, 2];
-            case 11: return [4 /*yield*/, nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration)];
+                return [3 /*break*/, 3];
             case 12:
-                _a.sent();
-                return [3 /*break*/, 14];
+                last_native_gyps = native_gyps;
+                return [4 /*yield*/, nativeGyp.read_all_native_gyps("./")];
             case 13:
+                native_gyps = _a.sent();
+                return [3 /*break*/, 2];
+            case 14: return [4 /*yield*/, nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration)];
+            case 15:
+                _a.sent();
+                return [3 /*break*/, 17];
+            case 16:
                 e_1 = _a.sent();
                 logger.error("unable to configure", e_1, e_1.stackTrace);
                 process.exit(1);
-                return [3 /*break*/, 14];
-            case 14: return [2 /*return*/];
+                return [3 /*break*/, 17];
+            case 17: return [2 /*return*/];
         }
     });
 }); })();

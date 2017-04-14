@@ -174,4 +174,50 @@ function download(downloadurl, filename, displayProgress) {
     });
 }
 exports.download = download;
+function request_get(request_url) {
+    return new Promise(function (resolve, reject) {
+        var requesturlsplit = url.parse(request_url);
+        var default_https = 443;
+        var default_http = 80;
+        var req = null;
+        if (requesturlsplit.protocol === "http:") {
+            req = http.request({
+                host: requesturlsplit.host,
+                port: (requesturlsplit.port) ? parseInt(requesturlsplit.port) : default_http,
+                path: requesturlsplit.path
+            });
+        }
+        else if (requesturlsplit.protocol === "https:") {
+            req = https.request({
+                host: requesturlsplit.host,
+                port: (requesturlsplit.port) ? parseInt(requesturlsplit.port) : default_https,
+                path: requesturlsplit.path
+            });
+        }
+        var filesize = 0;
+        var contents = new Buffer(0);
+        req.on("response", function (res) {
+            if (res.statusCode === 404) {
+                reject("url not found");
+                return;
+            }
+            var len = parseInt(res.headers["content-length"], 10);
+            if (len > 0) {
+                console.info("file length", len);
+            }
+            else {
+                console.info("unknown file size, downloading chunks");
+            }
+            res.on("data", function (chunk) {
+                filesize += chunk.length;
+                contents = Buffer.concat([contents, chunk]);
+            });
+            res.on("end", function () {
+                resolve(contents);
+            });
+        });
+        req.end();
+    });
+}
+exports.request_get = request_get;
 //# sourceMappingURL=download-accessor.js.map

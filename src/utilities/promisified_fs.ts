@@ -95,7 +95,7 @@ export async function find_all_files(base_path: string, level?: number): Promise
 
 export async function filter_glob(pattern: string, files: string[]): Promise<string[]> {
 	let retfiles = files.filter((v, i, a) => {
-		return !minimatch.filter(normalize_path(pattern), { dot: true })(normalize_path(v), i, a);
+		return !minimatch.filter(path.normalize( normalize_path(pattern)), { dot: true })(path.normalize( normalize_path(v)), i, a);
 	});
 	return retfiles;
 }

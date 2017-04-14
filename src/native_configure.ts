@@ -31,7 +31,7 @@ logger.info("native build configuration", node_package.version);
 // if build type == current platform
 commander
 	.version(node_package.version)
-
+//TODO: add a way to install from github.com/releases....
 	.option("-f, --force [type]", "force setup of package/binary/source")
 	.option("-p, --platform [type]", "assume platform is win/linux", process.platform)
 	.option("-a, --arch [architecture]", "assume architecture is x64/ia32/arm", process.arch)

@@ -23,7 +23,7 @@ let _file_streams: { [downloadurl: string]: IDownloadItem } = {};
 
 process.on("SIGINT", () => {
 	logger.error("Caught interrupt signal");
-	for (let file of Object.keys( _file_streams)) {
+	for (let file of Object.keys(_file_streams)) {
 		cancel(_file_streams[file].downloadurl);
 	}
 
@@ -199,6 +199,63 @@ export function download(downloadurl: string, filename: string, displayProgress:
 				} else {
 					reject("file not found");
 				}
+			});
+		});
+
+		req.end();
+	});
+}
+
+
+
+export function request_get(request_url: string): Promise<Buffer> {
+	return new Promise<Buffer>((resolve, reject) => {
+
+		const requesturlsplit = url.parse(request_url);
+
+		const default_https = 443;
+		const default_http = 80;
+
+		let req: http_.ClientRequest = null;
+
+		if (requesturlsplit.protocol === "http:") {
+			req = http.request({
+				host: requesturlsplit.host,
+				port: (requesturlsplit.port) ? parseInt(requesturlsplit.port) : default_http,
+				path: requesturlsplit.path
+			});
+		} else if (requesturlsplit.protocol === "https:") {
+			req = https.request({
+				host: requesturlsplit.host,
+				port: (requesturlsplit.port) ? parseInt(requesturlsplit.port) : default_https,
+				path: requesturlsplit.path
+			});
+		}
+
+		let filesize = 0;
+
+		let contents = new Buffer(0);
+
+		req.on("response", (res: http_.ClientResponse) => {
+			if (res.statusCode === 404) {
+				reject("url not found");
+				return;
+			}
+
+			let len = parseInt(res.headers["content-length"], 10);
+			if (len > 0) {
+				console.info("file length", len);
+			} else {
+				console.info("unknown file size, downloading chunks");
+			}
+
+			res.on("data", (chunk) => {
+				filesize += chunk.length;
+				contents = Buffer.concat([contents, chunk as Buffer]);
+			});
+
+			res.on("end", () => {
+				resolve(contents);
 			});
 		});
 

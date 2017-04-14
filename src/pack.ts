@@ -19,7 +19,7 @@ import * as githubAccessor from "./accessors/github-accessor";
 program
 	.version(node_package.version)
 	.option("-s, --pack-sources [filename]", "pack sources")
-	.option("-b, --pack-binaries [filename]", "pack binaries", [])
+	.option("-b, --pack-binaries", "pack binaries", [])
 	.parse(process.argv);
 
 // console.log(program);
@@ -83,6 +83,14 @@ program
 
 			await pfs.unlink(zipfile);
 			pfs.rmdir(zipfolder);
+		}
+
+		if (program["packBinaries"]){
+			//get filename by modules/types/architecture/platform
+			//find the filenames needed to be packed through configuration in package.json
+			//7z the files
+			//upload to github/releases
+			
 		}
 	} catch (e) {
 		console.log("error", e);

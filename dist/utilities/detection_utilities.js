@@ -7,7 +7,7 @@ var node_gyp_version_regex = /^v(\d+)\.?(\d+)\.?(\d+)?(\.\d+)$/gm;
 var v_version_regex = /v(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
 var version_regex = /(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
 var git_version_regex = /git version (\d+)(?:\.(\d+))?(?:\.(\d+))?/gm;
-var zip7_version_regex = /7-Zip\s\[(\d+)\]\s((\d+)(?:\.(\d+))?(?:\.(\d+))?)\s+Copyright\s+\(c\)/gm;
+var zip7_version_regex = /7-Zip\s*(?:\[(?:\d+)\])?\s*(\d+)(?:\.(\d+))?(?:\.(\d+))?\s+Copyright\s+\(c\)/gm;
 // enum platform_type {
 // 	darwin,
 // 	freebsd,
@@ -139,7 +139,7 @@ function z7_version_satisfies(required_version) {
 exports.z7_version_satisfies = z7_version_satisfies;
 var z7_status = child_process.spawnSync("7z", [], { shell: true });
 if (z7_status.status === 0) {
-    var parsed_version = zip7_version_regex.exec(z7_status.output.join("").toString()).slice(2);
+    var parsed_version = zip7_version_regex.exec(z7_status.output.join("").toString()).slice(1);
     exports.z7_version = {
         version: parsed_version.join("."),
         normalized_version: normalize_version(parsed_version.join(".")),

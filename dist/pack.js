@@ -53,7 +53,7 @@ var githubAccessor = require("./accessors/github-accessor");
 program
     .version(package_accessor_1.node_package.version)
     .option("-s, --pack-sources [filename]", "pack sources")
-    .option("-b, --pack-binaries [filename]", "pack binaries", [])
+    .option("-b, --pack-binaries", "pack binaries", [])
     .parse(process.argv);
 // console.log(program);
 (function () { return __awaiter(_this, void 0, void 0, function () {
@@ -147,7 +147,14 @@ program
                 _d.sent();
                 pfs.rmdir(zipfolder);
                 _d.label = 22;
-            case 22: return [3 /*break*/, 24];
+            case 22:
+                if (program["packBinaries"]) {
+                    //get filename by modules/types/architecture/platform
+                    //find the filenames needed to be packed through configuration in package.json
+                    //7z the files
+                    //upload to github/releases
+                }
+                return [3 /*break*/, 24];
             case 23:
                 e_2 = _d.sent();
                 console.log("error", e_2);
