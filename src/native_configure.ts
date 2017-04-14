@@ -101,7 +101,13 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 		return false;
 	}
 
-	await extractFull(package_filename, path.normalize("./"));
+	try {
+		await extractFull(package_filename, path.normalize("./"));
+	} catch (e) {
+		logger.error("failed to extract precompiled binary", e);
+		return false;
+	}
+	return true;
 }
 
 (async () => {
