@@ -1,6 +1,7 @@
 import * as github from "github";
 import * as pfs from "../utilities/promisified_fs";
 import path = require("path");
+import os = require("os");
 // import app_root_path = require("app-root-path");
 import promptly = require("promptly");
 import ini = require("ini");
@@ -12,7 +13,7 @@ import * as dependencyAccessor from "./dependency-accessor";
 import { node_package } from "./package-accessor";
 
 const GITHUB_APPLICATION_NAME = "github-node-publisher";
-const THIS_PACKAGE_NAME = GITHUB_APPLICATION_NAME + " " + node_package.name;
+const THIS_PACKAGE_NAME = GITHUB_APPLICATION_NAME;
 
 // tslint:disable-next-line:max-line-length
 const email_regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -219,7 +220,7 @@ export interface IError {
 }
 
 export class GitHubAccessor {
-	private _auth_cache_filename = path.join(process.cwd(), AuthenticationFilename);
+	private _auth_cache_filename = path.join(os.homedir(), AuthenticationFilename);
 	private _github = new github();
 	private _authentication: github.AccessToken;
 	private _authenticated = false;
