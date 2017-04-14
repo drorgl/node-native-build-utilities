@@ -41,7 +41,6 @@ var semver = require("semver");
 var path = require("path");
 var fs = require("fs");
 var url = require("url");
-//import { cancel, download, download_size } from "../accessors/download-accessor";
 var dependencyAccessor = require("../accessors/dependency-accessor");
 var gitAccessor = require("../accessors/git-accessor");
 var archive_1 = require("../utilities/archive");
@@ -189,7 +188,6 @@ function parse_dependencies(native_gyp, configuration) {
                     for (_f = 0, archived_sources_1 = archived_sources; _f < archived_sources_1.length; _f++) {
                         source = archived_sources_1[_f];
                         dependencies_information.archived_sources.push(source);
-                        // await git_clone(source, default_source_path);
                     }
                     dependencies_information.dependencies[dependency_name] = {
                         source: "archived_source",
@@ -210,7 +208,6 @@ function parse_dependencies(native_gyp, configuration) {
                     for (_j = 0, sources_1 = sources; _j < sources_1.length; _j++) {
                         source = sources_1[_j];
                         dependencies_information.git_repositories.push(source);
-                        // await git_clone(source, default_source_path);
                     }
                     dependencies_information.dependencies[dependency_name] = {
                         source: "source",

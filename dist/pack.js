@@ -44,8 +44,12 @@ var logger = require("./utilities/logger");
 var pfs = require("./utilities/promisified_fs");
 var path = require("path");
 var os = require("os");
+var buildAccessor = require("./accessors/build-accessor");
 var gitAccessor = require("./accessors/git-accessor");
 var githubAccessor = require("./accessors/github-accessor");
+var nativeGyp = require("./accessors/native-gyp-accessor");
+var packageAccessor = require("./accessors/package-accessor");
+var abiReleases = require("./utilities/abi_releases");
 // pack binary
 // pack sources
 // ignore what's .gitignore
@@ -56,18 +60,72 @@ program
     .option("-b, --pack-binaries", "pack binaries", [])
     .parse(process.argv);
 // console.log(program);
+function upload_asset(tag_version, zipfile) {
+    return __awaiter(this, void 0, void 0, function () {
+        var repoinfo, gh, releases, release, result, e_1, err;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    repoinfo = package_accessor_1.parse_repository();
+                    gh = new githubAccessor.GitHubAccessor();
+                    return [4 /*yield*/, gh.authenticate()];
+                case 1:
+                    if (!(_a.sent())) return [3 /*break*/, 9];
+                    console.log("looking for releases", repoinfo.username, repoinfo.repo, tag_version);
+                    return [4 /*yield*/, gh.get_releases_by_tag(repoinfo.username, repoinfo.repo, tag_version)];
+                case 2:
+                    releases = (_a.sent()).data;
+                    release = releases;
+                    console.log("found", release.id, release.name, release.tag_name, "assets:", release.assets.length);
+                    if (!!releases) return [3 /*break*/, 4];
+                    return [4 /*yield*/, gh.create_release(repoinfo.username, repoinfo.repo, tag_version, tag_version, false)];
+                case 3:
+                    releases = _a.sent();
+                    _a.label = 4;
+                case 4:
+                    console.log("uploading asset");
+                    _a.label = 5;
+                case 5:
+                    _a.trys.push([5, 7, , 8]);
+                    console.log("should upload: ", repoinfo.username, repoinfo.repo, releases.id.toString(), zipfile, path.basename(zipfile), path.basename(zipfile));
+                    return [4 /*yield*/, gh.upload_release_asset(repoinfo.username, repoinfo.repo, releases.id.toString(), zipfile, path.basename(zipfile), path.basename(zipfile))];
+                case 6:
+                    result = _a.sent();
+                    if (result && result.data.id) {
+                        console.log("successfully uploaded", result.data.id);
+                        return [2 /*return*/, true];
+                    }
+                    else {
+                        console.log("failed to upload asset");
+                        return [2 /*return*/, false];
+                    }
+                    return [3 /*break*/, 8];
+                case 7:
+                    e_1 = _a.sent();
+                    err = e_1;
+                    console.error("problem uploading asset", JSON.parse(err.message).errors.map(function (v) { return v.code; }).join(", "));
+                    return [2 /*return*/, false];
+                case 8: return [3 /*break*/, 10];
+                case 9:
+                    console.log("unable to authenticate github");
+                    return [2 /*return*/, false];
+                case 10: return [2 /*return*/];
+            }
+        });
+    });
+}
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var tag_version, filename, zipfolder, _a, _b, _c, zipfile, files, repoinfo, gh, releases, release, result, e_1, err, e_2;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var tag_version, filename, zipfolder, _a, _b, _c, zipfile, files, tag_version, current_native_gyp, version_info, files, filename, zipfolder, _d, _e, _f, zipfile, e_2;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
-                _d.trys.push([0, 23, , 24]);
-                if (!program["packSources"]) return [3 /*break*/, 22];
+                _g.trys.push([0, 29, , 30]);
+                if (!program["packSources"]) return [3 /*break*/, 13];
                 console.log("packing");
                 logger.debug("pack sources", program["packSources"]);
                 return [4 /*yield*/, gitAccessor.git_get_last_tag(process.cwd())];
             case 1:
-                tag_version = _d.sent();
+                tag_version = _g.sent();
                 if (!tag_version) {
                     console.error("unable to pack source for", package_accessor_1.node_package.name, "no git tags were found");
                     return [2 /*return*/];
@@ -77,89 +135,121 @@ program
                 _c = [os.tmpdir()];
                 return [4 /*yield*/, archive.generate_random(8)];
             case 2:
-                zipfolder = _b.apply(_a, _c.concat([_d.sent()]));
+                zipfolder = _b.apply(_a, _c.concat([_g.sent()]));
                 return [4 /*yield*/, pfs.exists(zipfolder)];
             case 3:
-                if (!!(_d.sent())) return [3 /*break*/, 5];
+                if (!!(_g.sent())) return [3 /*break*/, 5];
                 return [4 /*yield*/, pfs.mkdir(zipfolder)];
             case 4:
-                _d.sent();
-                _d.label = 5;
+                _g.sent();
+                _g.label = 5;
             case 5:
                 zipfile = path.join(zipfolder, filename);
                 return [4 /*yield*/, pfs.exists(zipfile)];
             case 6:
-                if (!(_d.sent())) return [3 /*break*/, 8];
+                if (!(_g.sent())) return [3 /*break*/, 8];
                 return [4 /*yield*/, pfs.unlink(zipfile)];
             case 7:
-                _d.sent();
-                _d.label = 8;
+                _g.sent();
+                _g.label = 8;
             case 8: return [4 /*yield*/, archive.parse_folder("./")];
             case 9:
-                files = _d.sent();
+                files = _g.sent();
                 console.log("compressing ", files.length, "files", zipfile);
                 return [4 /*yield*/, archive.addFull(zipfile, files)];
             case 10:
-                _d.sent();
-                repoinfo = package_accessor_1.parse_repository();
-                gh = new githubAccessor.GitHubAccessor();
-                return [4 /*yield*/, gh.authenticate()];
+                _g.sent();
+                return [4 /*yield*/, upload_asset(tag_version, zipfile)];
             case 11:
-                if (!(_d.sent())) return [3 /*break*/, 19];
-                console.log("looking for releases", repoinfo.username, repoinfo.repo, tag_version);
-                return [4 /*yield*/, gh.get_releases_by_tag(repoinfo.username, repoinfo.repo, tag_version)];
+                _g.sent();
+                return [4 /*yield*/, pfs.unlink(zipfile)];
             case 12:
-                releases = (_d.sent()).data;
-                release = releases;
-                console.log("found", release.id, release.name, release.tag_name, "assets:", release.assets.length);
-                if (!!releases) return [3 /*break*/, 14];
-                return [4 /*yield*/, gh.create_release(repoinfo.username, repoinfo.repo, tag_version, tag_version, false)];
-            case 13:
-                releases = _d.sent();
-                _d.label = 14;
-            case 14:
-                console.log("uploading asset");
-                _d.label = 15;
-            case 15:
-                _d.trys.push([15, 17, , 18]);
-                console.log("should upload: ", repoinfo.username, repoinfo.repo, releases.id.toString(), zipfile, path.basename(zipfile), path.basename(zipfile));
-                return [4 /*yield*/, gh.upload_release_asset(repoinfo.username, repoinfo.repo, releases.id.toString(), zipfile, path.basename(zipfile), path.basename(zipfile))];
-            case 16:
-                result = _d.sent();
-                if (result && result.data.id) {
-                    console.log("successfully uploaded", result.data.id);
-                }
-                else {
-                    console.log("failed to upload asset");
-                }
-                return [3 /*break*/, 18];
-            case 17:
-                e_1 = _d.sent();
-                err = e_1;
-                console.error("problem uploading asset", JSON.parse(err.message).errors.map(function (v) { return v.code; }).join(", "));
-                return [3 /*break*/, 18];
-            case 18: return [3 /*break*/, 20];
-            case 19:
-                console.log("unable to authenticate github");
-                _d.label = 20;
-            case 20: return [4 /*yield*/, pfs.unlink(zipfile)];
-            case 21:
-                _d.sent();
+                _g.sent();
                 pfs.rmdir(zipfolder);
-                _d.label = 22;
-            case 22:
-                if (program["packBinaries"]) {
-                    //get filename by modules/types/architecture/platform
-                    //find the filenames needed to be packed through configuration in package.json
-                    //7z the files
-                    //upload to github/releases
+                _g.label = 13;
+            case 13:
+                if (!program["packBinaries"]) return [3 /*break*/, 28];
+                // get filename by modules/types/architecture/platform
+                // find the filenames needed to be packed through configuration in package.json
+                // 7z the files
+                // upload to github/releases
+                console.log("packing");
+                logger.debug("pack binaries", program["packBinaries"]);
+                return [4 /*yield*/, gitAccessor.git_get_last_tag(process.cwd())];
+            case 14:
+                tag_version = _g.sent();
+                if (!tag_version) {
+                    console.error("unable to pack binaries for", package_accessor_1.node_package.name, "no git tags were found");
+                    return [2 /*return*/];
                 }
-                return [3 /*break*/, 24];
+                return [4 /*yield*/, nativeGyp.read()];
+            case 15:
+                current_native_gyp = _g.sent();
+                return [4 /*yield*/, abiReleases.get_current_node_version()];
+            case 16:
+                version_info = _g.sent();
+                if (!current_native_gyp.binary) {
+                    console.error("unable to pack a module without native_gyp.json binary section");
+                    return [2 /*return*/];
+                }
+                if (!current_native_gyp.binary.module_paths || current_native_gyp.binary.module_paths.length === 0) {
+                    console.error("unable to pack a module without native_gyp.json binary module paths");
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, pfs.list_folder(current_native_gyp.binary.module_paths)];
+            case 17:
+                files = _g.sent();
+                if (files.length === 0) {
+                    console.error("no files were found to pack", current_native_gyp.binary.module_paths);
+                    return [2 /*return*/];
+                }
+                filename = buildAccessor.get_module_package_name(current_native_gyp.binary, {
+                    module_name: (current_native_gyp.binary && current_native_gyp.binary.module_name) ? current_native_gyp.binary.module_name : packageAccessor.node_package.name,
+                    version: packageAccessor.node_package.version,
+                    node_abi: version_info.modules,
+                    platform: version_info.platform,
+                    arch: version_info.arch
+                });
+                _e = (_d = path).join;
+                _f = [os.tmpdir()];
+                return [4 /*yield*/, archive.generate_random(8)];
+            case 18:
+                zipfolder = _e.apply(_d, _f.concat([_g.sent()]));
+                return [4 /*yield*/, pfs.exists(zipfolder)];
+            case 19:
+                if (!!(_g.sent())) return [3 /*break*/, 21];
+                return [4 /*yield*/, pfs.mkdir(zipfolder)];
+            case 20:
+                _g.sent();
+                _g.label = 21;
+            case 21:
+                zipfile = path.join(zipfolder, filename);
+                return [4 /*yield*/, pfs.exists(zipfile)];
+            case 22:
+                if (!(_g.sent())) return [3 /*break*/, 24];
+                return [4 /*yield*/, pfs.unlink(zipfile)];
             case 23:
-                e_2 = _d.sent();
+                _g.sent();
+                _g.label = 24;
+            case 24:
+                console.log("compressing ", files.length, "files", zipfile);
+                return [4 /*yield*/, archive.addFull(zipfile, files)];
+            case 25:
+                _g.sent();
+                return [4 /*yield*/, upload_asset(tag_version, zipfile)];
+            case 26:
+                _g.sent();
+                return [4 /*yield*/, pfs.unlink(zipfile)];
+            case 27:
+                _g.sent();
+                pfs.rmdir(zipfolder);
+                _g.label = 28;
+            case 28: return [3 /*break*/, 30];
+            case 29:
+                e_2 = _g.sent();
                 console.log("error", e_2);
-                return [3 /*break*/, 24];
-            case 24: return [2 /*return*/];
+                return [3 /*break*/, 30];
+            case 30: return [2 /*return*/];
         }
     });
 }); })();

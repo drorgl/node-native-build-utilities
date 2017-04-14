@@ -2,7 +2,6 @@ import fs = require("fs");
 import path = require("path");
 import url = require("url");
 import { IPackageArgs, npa } from "./npm-package-arg";
-// import app_root_path = require("app-root-path");
 
 interface IPerson {
 	name: string;

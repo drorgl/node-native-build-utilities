@@ -60,11 +60,6 @@ logger.info("arguments", process.argv);
 
 (async () => {
 	try {
-		// if (!await nativeGyp.exists()) {
-		// 	logger.error(nativeGyp.NATIVE_GYP_FILENAME, "not found, nothing to do");
-		// 	process.exit(0);
-		// }
-
 		let native_configuration_filename = await nativeConfiguration.find_native_configuration_file(nativeConfiguration.NATIVE_CONFIGURATION_FILE);
 		logger.debug("found native configuration", native_configuration_filename);
 
@@ -85,7 +80,7 @@ logger.info("arguments", process.argv);
 					let gyp_sources = "";
 					for (let gyp_src of dep.gyp_sources) {
 						let gyp_source = dependencyEngine.gyp_source_parse(gyp_src);
-						gyp_sources += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, path.basename(gyp_source.source, path.extname(gyp_source.source)), gyp_source.gyp_file)) + ":" + gyp_source.gyp_target;
+						gyp_sources += " " + normalize_gyp_path(path.join(root_configuration, native_configuration.source_path, path.basename(gyp_source.source, path.extname(gyp_source.source)), gyp_source.gyp_file)) + ":" + gyp_source.gyp_target;
 					}
 					console.log(gyp_sources);
 				}
@@ -107,7 +102,7 @@ logger.info("arguments", process.argv);
 					// iterate through headers in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
 					let headers = "";
 					for (let header of dep.pre_headers) {
-						headers += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, header));
+						headers += " " + normalize_gyp_path(path.join(root_configuration, native_configuration.source_path, header));
 					}
 
 					console.log(headers);
@@ -133,7 +128,7 @@ logger.info("arguments", process.argv);
 					let libraries = "";
 					for (let header of dep.pre_libraries) {
 						logger.debug("header", header);
-						libraries += " " + normalize_path(path.join(root_configuration, (commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
+						libraries += " " + normalize_gyp_path(path.join(root_configuration, (commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
 					}
 
 					console.log(libraries);
@@ -154,7 +149,7 @@ logger.info("arguments", process.argv);
 					let files = "";
 					for (let file of dep.copy) {
 						logger.debug("copy", file);
-						files += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, file));
+						files += " " + normalize_gyp_path(path.join(root_configuration, native_configuration.source_path, file));
 					}
 
 					console.log(files);
@@ -169,6 +164,6 @@ logger.info("arguments", process.argv);
 	}
 })();
 
-function normalize_path(filepath: string): string {
+function normalize_gyp_path(filepath: string): string {
 	return filepath.split(/\/|\\/).join("/");
 }

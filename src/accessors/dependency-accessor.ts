@@ -1,6 +1,4 @@
 import * as downloadAccessor from "./download-accessor";
-
-// TODO: caching layer between download-accessor and nnbu
 import os = require("os");
 import path = require("path");
 
@@ -27,5 +25,3 @@ export async function get_package_size(package_url: string): Promise<number> {
 export async function get_package(package_url: string, filename: string): Promise<boolean> {
 	return await downloadAccessor.download(package_url, filename, true);
 }
-
-// '{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz';

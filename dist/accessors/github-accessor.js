@@ -43,7 +43,7 @@ var promptly = require("promptly");
 var ini = require("ini");
 var logger = require("../utilities/logger");
 var dependencyAccessor = require("./dependency-accessor");
-//import { cancel, download } from "./download-accessor";
+// import { cancel, download } from "./download-accessor";
 var package_accessor_1 = require("./package-accessor");
 var GITHUB_APPLICATION_NAME = "github-node-publisher";
 var THIS_PACKAGE_NAME = GITHUB_APPLICATION_NAME + " " + package_accessor_1.node_package.name;

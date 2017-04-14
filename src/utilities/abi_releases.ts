@@ -24,7 +24,6 @@ interface INodeVersion {
 
 function sort_function(a: INodeVersion, b: INodeVersion): number {
 	// compare versions
-	// let i, diff;
 	let segmentsA = a.version.substr(1).split(".");
 	let segmentsB = b.version.substr(1).split(".");
 	let l = Math.min(segmentsA.length, segmentsB.length);

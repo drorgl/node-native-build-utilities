@@ -36,15 +36,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var downloadAccessor = require("./download-accessor");
-//TODO: caching layer between download-accessor and nnbu
 var os = require("os");
 var path = require("path");
-//allow parameter --disable-cache
-var cache_dir = process.env.NNBU_CACHE || path.join(os.homedir(), '.nnbu');
+// allow parameter --disable-cache
+var cache_dir = process.env.NNBU_CACHE || path.join(os.homedir(), ".nnbu");
 function get_dependency(dependency_url) {
+    // retrieve dependency from cache or download
 }
-//specific dependency/all
+// specific dependency/all
 function clear_cache(dependency_url) {
+    // remove dependency from cache or delete all if no url specified
 }
 function cancel(package_url) {
     return __awaiter(this, void 0, void 0, function () {
@@ -79,5 +80,4 @@ function get_package(package_url, filename) {
     });
 }
 exports.get_package = get_package;
-//'{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz';
 //# sourceMappingURL=dependency-accessor.js.map

@@ -109,7 +109,7 @@ logger.info("arguments", process.argv);
                             for (_i = 0, _a = dep.gyp_sources; _i < _a.length; _i++) {
                                 gyp_src = _a[_i];
                                 gyp_source = dependencyEngine.gyp_source_parse(gyp_src);
-                                gyp_sources += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, path.basename(gyp_source.source, path.extname(gyp_source.source)), gyp_source.gyp_file)) + ":" + gyp_source.gyp_target;
+                                gyp_sources += " " + normalize_gyp_path(path.join(root_configuration, native_configuration.source_path, path.basename(gyp_source.source, path.extname(gyp_source.source)), gyp_source.gyp_file)) + ":" + gyp_source.gyp_target;
                             }
                             console.log(gyp_sources);
                         }
@@ -131,7 +131,7 @@ logger.info("arguments", process.argv);
                             headers = "";
                             for (_d = 0, _e = dep.pre_headers; _d < _e.length; _d++) {
                                 header = _e[_d];
-                                headers += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, header));
+                                headers += " " + normalize_gyp_path(path.join(root_configuration, native_configuration.source_path, header));
                             }
                             console.log(headers);
                         }
@@ -157,7 +157,7 @@ logger.info("arguments", process.argv);
                             for (_h = 0, _j = dep.pre_libraries; _h < _j.length; _h++) {
                                 header = _j[_h];
                                 logger.debug("header", header);
-                                libraries += " " + normalize_path(path.join(root_configuration, (commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
+                                libraries += " " + normalize_gyp_path(path.join(root_configuration, (commander["libFix"]) ? ".." : "", native_configuration.source_path, header));
                             }
                             console.log(libraries);
                         }
@@ -178,7 +178,7 @@ logger.info("arguments", process.argv);
                             for (_k = 0, _l = dep.copy; _k < _l.length; _k++) {
                                 file = _l[_k];
                                 logger.debug("copy", file);
-                                files += " " + normalize_path(path.join(root_configuration, native_configuration.source_path, file));
+                                files += " " + normalize_gyp_path(path.join(root_configuration, native_configuration.source_path, file));
                             }
                             console.log(files);
                         }
@@ -197,7 +197,7 @@ logger.info("arguments", process.argv);
         }
     });
 }); })();
-function normalize_path(filepath) {
+function normalize_gyp_path(filepath) {
     return filepath.split(/\/|\\/).join("/");
 }
 //# sourceMappingURL=dependency.js.map

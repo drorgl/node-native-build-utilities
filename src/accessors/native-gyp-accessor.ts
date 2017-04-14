@@ -34,7 +34,7 @@ interface IDependency {
 
 export interface INativeBinary {
 	module_name: string; // quantlib
-	module_path: string; // ./build/Release/quantlib.node - add multiple filters!
+	module_paths: string[]; // ./build/Release/quantlib.node - add multiple filters!
 	publish_repo: string; // github user/repo
 	package_name: string; // '{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz';
 }

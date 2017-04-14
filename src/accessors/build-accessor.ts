@@ -2,28 +2,6 @@ import * as nativeGyp from "./native-gyp-accessor";
 
 import * as gyp from "./node-gyp-accessor";
 
-// execute node-gyp
-// cache results of build is successful, the question is what is the key...? perhaps a hash of all the sources?
-
-//  "binary": {
-//     "module_name": "quantlib",
-//     "module_path": "./build/Release/quantlib.node",
-//     "host": "https://github.com",
-//     "package_name": "{platform}-{arch}.tar.gz",
-//     "remote_path": "./quantlibnode/quantlibnode/releases/download/v{version}/"
-//   }
-
-//   "binary": {
-//       "module_name": "mymodule",
-//       "module_path": "./build/",
-//       "host": "https://github.com",
-//       "package_name": "{platform}-{arch}.tar.gz",
-//       "remote_path": "./myproject/dist/raw/master/v{version}/"
-//   }
-
-// nnbu-configure && node-gyp configure -- --no-duplicate-basename-check   && node-gyp build
-//
-
 const DEFAULT_PACKAGE_NAME = "{module_name}-v{version}-{node_abi}-{platform}-{arch}.7z";
 
 interface IProcessInfo {

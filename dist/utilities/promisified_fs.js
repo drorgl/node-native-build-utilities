@@ -39,6 +39,7 @@ var fs = require("fs");
 var path = require("path");
 var bluebird = require("bluebird");
 var minimatch = require("minimatch");
+var glob = require("glob");
 exports.readdir = bluebird.promisify(fs.readdir);
 exports.stat = bluebird.promisify(fs.stat);
 function mkdir(file) {
@@ -176,4 +177,42 @@ function human_file_size(bytes, si) {
     return bytes.toFixed(1) + " " + units[u];
 }
 exports.human_file_size = human_file_size;
+function list_folder_by_pattern(pattern) {
+    return new Promise(function (resolve, reject) {
+        glob("**/*.js", {}, function (er, files) {
+            if (er) {
+                reject(er);
+                return;
+            }
+            resolve(files);
+        });
+    });
+}
+exports.list_folder_by_pattern = list_folder_by_pattern;
+function list_folder(patterns) {
+    return __awaiter(this, void 0, void 0, function () {
+        var files, _i, patterns_1, pattern, _a, _b, _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    files = [];
+                    _i = 0, patterns_1 = patterns;
+                    _d.label = 1;
+                case 1:
+                    if (!(_i < patterns_1.length)) return [3 /*break*/, 4];
+                    pattern = patterns_1[_i];
+                    _b = (_a = files).concat;
+                    return [4 /*yield*/, list_folder_by_pattern(pattern)];
+                case 2:
+                    files = _b.apply(_a, [_d.sent()]);
+                    _d.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [2 /*return*/, files];
+            }
+        });
+    });
+}
+exports.list_folder = list_folder;
 //# sourceMappingURL=promisified_fs.js.map

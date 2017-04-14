@@ -35,8 +35,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var merger = require("./object_utilities");
 var download_accessor_1 = require("../accessors/download-accessor");
+var merger = require("./object_utilities");
 var pfs = require("./promisified_fs");
 var path = require("path");
 var iojs_releases_url = "https://iojs.org/download/release/index.json";
@@ -44,21 +44,20 @@ var node_releases_url = "https://nodejs.org/download/release/index.json";
 var abi_filename = path.join(__dirname, "abi.json");
 var _node_versions = null;
 function sort_function(a, b) {
-    //compare versions
-    var i, diff;
-    var segmentsA = a.version.substr(1).split('.');
-    var segmentsB = b.version.substr(1).split('.');
+    // compare versions
+    var segmentsA = a.version.substr(1).split(".");
+    var segmentsB = b.version.substr(1).split(".");
     var l = Math.min(segmentsA.length, segmentsB.length);
-    for (i = 0; i < l; i++) {
-        diff = parseInt(segmentsB[i], 10) - parseInt(segmentsA[i], 10);
+    for (var i = 0; i < l; i++) {
+        var diff = parseInt(segmentsB[i], 10) - parseInt(segmentsA[i], 10);
         if (diff) {
             return diff;
         }
     }
-    if (segmentsA.length - segmentsB.length != 0) {
+    if (segmentsA.length - segmentsB.length !== 0) {
         return segmentsA.length - segmentsB.length;
     }
-    //compare module
+    // compare module
     return parseInt(b.modules || "0") - parseInt(a.modules || "0");
 }
 function get_remote_node_versions() {
@@ -128,7 +127,7 @@ function get_node_version(version) {
                 case 0: return [4 /*yield*/, get_node_versions()];
                 case 1:
                     node_versions = _a.sent();
-                    abi_version = node_versions.find(function (i) { return i.version == version; });
+                    abi_version = node_versions.find(function (i) { return i.version === version; });
                     if (abi_version && abi_version.modules) {
                         return [2 /*return*/, {
                                 version: process.version,

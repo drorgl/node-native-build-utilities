@@ -2,6 +2,7 @@ import fs = require("fs");
 import path = require("path");
 import bluebird = require("bluebird");
 import minimatch = require("minimatch");
+import glob = require("glob");
 
 export let readdir = bluebird.promisify<string[], string | Buffer>(fs.readdir);
 export let stat = bluebird.promisify<fs.Stats, string | Buffer>(fs.stat);
@@ -95,7 +96,7 @@ export async function find_all_files(base_path: string, level?: number): Promise
 
 export async function filter_glob(pattern: string, files: string[]): Promise<string[]> {
 	let retfiles = files.filter((v, i, a) => {
-		return !minimatch.filter(path.normalize( normalize_path(pattern)), { dot: true })(path.normalize( normalize_path(v)), i, a);
+		return !minimatch.filter(path.normalize(normalize_path(pattern)), { dot: true })(path.normalize(normalize_path(v)), i, a);
 	});
 	return retfiles;
 }
@@ -115,4 +116,24 @@ export function human_file_size(bytes: number, si?: boolean): string {
 		++u;
 	} while (Math.abs(bytes) >= thresh && u < units.length - 1);
 	return bytes.toFixed(1) + " " + units[u];
+}
+
+export function list_folder_by_pattern(pattern: string): Promise<string[]> {
+	return new Promise<string[]>((resolve, reject) => {
+		glob(pattern, {}, (er, files) => {
+			if (er) {
+				reject(er);
+				return;
+			}
+			resolve(files);
+		});
+	});
+}
+
+export async function list_folder(patterns: string[]): Promise<string[]> {
+	let files: string[] = [];
+	for (let pattern of patterns) {
+		files = files.concat(await list_folder_by_pattern(pattern));
+	}
+	return files;
 }

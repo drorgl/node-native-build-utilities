@@ -40,16 +40,16 @@ exports.__esModule = true;
 var pfs = require("./utilities/promisified_fs");
 var path = require("path");
 var commander = require("commander");
+var buildAccessor = require("./accessors/build-accessor");
+var githubAccessor = require("./accessors/github-accessor");
+var packageAccessor = require("./accessors/package-accessor");
+var abiReleases = require("./utilities/abi_releases");
 var nativeGyp = require("./accessors/native-gyp-accessor");
 var detection = require("./utilities/detection_utilities");
 var dependencyEngine = require("./engine/dependency-engine");
 var nativeConfiguration = require("./accessors/native-configuration-accessor");
 var logger = require("./utilities/logger");
 var merger = require("./utilities/object_utilities");
-var abiReleases = require("./utilities/abi_releases");
-var buildAccessor = require("./accessors/build-accessor");
-var packageAccessor = require("./accessors/package-accessor");
-var githubAccessor = require("./accessors/github-accessor");
 var archive_1 = require("./utilities/archive");
 var default_toolset = null;
 var default_toolset_version = null;
@@ -234,14 +234,6 @@ function attempt_prebuilt_install(selected_platform, selected_arch) {
                 logger.info("done");
                 _a.label = 15;
             case 15:
-                // rescan dependencies until done
-                // last_configured_dependencies = configured_dependencies;
-                // native_gyps = await nativeGyp.read_all_native_gyps("./");
-                // for (let current_native_gyp of native_gyps) {
-                // 	native_gyp =  merger.merge<nativeGyp.INativeGyp>(native_gyp || {}, current_native_gyp);
-                // }
-                // console.log("native gyp", native_gyp);
-                // configured_dependencies = merger.merge<dependencyEngine.IDependenciesInformation>(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
                 rescan_iteration++;
                 if (rescan_iteration > 10) {
                     logger.warn("maximum rescan iteration reached, dependency tree might not be complete");

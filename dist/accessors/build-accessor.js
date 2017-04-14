@@ -37,24 +37,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 var nativeGyp = require("./native-gyp-accessor");
 var gyp = require("./node-gyp-accessor");
-//execute node-gyp
-//cache results of build is successful, the question is what is the key...? perhaps a hash of all the sources?
-//  "binary": {
-//     "module_name": "quantlib",
-//     "module_path": "./build/Release/quantlib.node",
-//     "host": "https://github.com",
-//     "package_name": "{platform}-{arch}.tar.gz",
-//     "remote_path": "./quantlibnode/quantlibnode/releases/download/v{version}/"
-//   }
-//   "binary": {
-//       "module_name": "mymodule",
-//       "module_path": "./build/",
-//       "host": "https://github.com",
-//       "package_name": "{platform}-{arch}.tar.gz",
-//       "remote_path": "./myproject/dist/raw/master/v{version}/"
-//   }
-//nnbu-configure && node-gyp configure -- --no-duplicate-basename-check   && node-gyp build
-//
 var DEFAULT_PACKAGE_NAME = "{module_name}-v{version}-{node_abi}-{platform}-{arch}.7z";
 function get_module_package_name(binary, processInfo) {
     var ret = binary.package_name || DEFAULT_PACKAGE_NAME;
@@ -95,7 +77,7 @@ function configure(additional_options) {
                 case 1:
                     native_gyps = _a.sent();
                     args = parse_options(additional_options);
-                    //collect configuration options
+                    // collect configuration options
                     for (_i = 0, native_gyps_1 = native_gyps; _i < native_gyps_1.length; _i++) {
                         ng = native_gyps_1[_i];
                         configure_params = ng.node_gyp_configure_parameters;
@@ -110,7 +92,7 @@ function configure(additional_options) {
                     return [4 /*yield*/, gyp.configure(cmdargs)];
                 case 2:
                     result = _a.sent();
-                    return [2 /*return*/, (result == 0)];
+                    return [2 /*return*/, (result === 0)];
             }
         });
     });
@@ -125,7 +107,7 @@ function build(additional_options) {
                 case 1:
                     native_gyps = _a.sent();
                     args = parse_options(additional_options);
-                    //collect build options
+                    // collect build options
                     for (_i = 0, native_gyps_2 = native_gyps; _i < native_gyps_2.length; _i++) {
                         ng = native_gyps_2[_i];
                         configure_params = ng.node_gyp_build_parameters;
@@ -140,7 +122,7 @@ function build(additional_options) {
                     return [4 /*yield*/, gyp.build(cmdargs)];
                 case 2:
                     result = _a.sent();
-                    return [2 /*return*/, (result == 0)];
+                    return [2 /*return*/, (result === 0)];
             }
         });
     });

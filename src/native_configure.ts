@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-//import fs = require("fs");
 import * as pfs from "./utilities/promisified_fs";
 import path = require("path");
 import commander = require("commander");
@@ -86,7 +85,6 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 	let github_accessor = new githubAccessor.GitHubAccessor();
 	let repo = packageAccessor.parse_repository();
-	// githubAccessor.download_asset()
 
 	let package_filename = path.join(default_source_path, package_name);
 
@@ -107,9 +105,8 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 (async () => {
 	try {
 
-		// TODO: read ALL native gyps in current package and node_modules
+		// read ALL native gyps in current package and node_modules
 		let native_gyps = await nativeGyp.read_all_native_gyps("./");
-		// let native_gyp = await nativeGyp.read();
 
 		// platform win/linux
 		const platforms = ["darwin", "freebsd", "linux", "sunos", "win32"];
@@ -167,14 +164,6 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 		let last_configured_dependencies: dependencyEngine.IDependenciesInformation = null;
 
-		// let configured_dependencies: dependencyEngine.IDependenciesInformation;
-
-		// let native_gyp : nativeGyp.INativeGyp;
-
-		// for (let current_native_gyp of native_gyps) {
-		// 	native_gyp =  merger.merge<nativeGyp.INativeGyp>(native_gyp || {}, current_native_gyp);
-		// }
-
 		let last_native_gyps: nativeGyp.INativeGyp[];
 
 		let rescan_iteration = 1;
@@ -183,10 +172,7 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 			for (let native_gyp of native_gyps) {
 				console.log("processing ", native_gyp);
-				// while (JSON.stringify(configured_dependencies) !== JSON.stringify(last_configured_dependencies)) {
-				// configured_dependencies = merger.merge<dependencyEngine.IDependenciesInformation>(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
 
-				// configuration.dependencies = configured_dependencies.dependencies;
 				let configured_dependencies = await dependencyEngine.parse_dependencies(native_gyp, configuration);
 				configuration.dependencies = merger.merge<nativeConfiguration.IDependencies>(configuration.dependencies, configured_dependencies.dependencies);
 
@@ -210,18 +196,6 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 					logger.info("done");
 				}
 
-				// rescan dependencies until done
-				// last_configured_dependencies = configured_dependencies;
-
-				// native_gyps = await nativeGyp.read_all_native_gyps("./");
-
-				// for (let current_native_gyp of native_gyps) {
-				// 	native_gyp =  merger.merge<nativeGyp.INativeGyp>(native_gyp || {}, current_native_gyp);
-				// }
-
-				// console.log("native gyp", native_gyp);
-
-				// configured_dependencies = merger.merge<dependencyEngine.IDependenciesInformation>(configured_dependencies || {}, await dependencyEngine.parse_dependencies(native_gyp, configuration));
 				rescan_iteration++;
 
 				if (rescan_iteration > 10) {

@@ -7,7 +7,6 @@ import semver = require("semver");
 import path = require("path");
 import fs = require("fs");
 import url = require("url");
-// import { cancel, download, download_size } from "../accessors/download-accessor";
 import * as dependencyAccessor from "../accessors/dependency-accessor";
 import * as gitAccessor from "../accessors/git-accessor";
 import { extractFull } from "../utilities/archive";
@@ -176,7 +175,6 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			// git clone --recursive git://github.com/foo/bar.git
 			for (let source of archived_sources) {
 				dependencies_information.archived_sources.push(source);
-				// await git_clone(source, default_source_path);
 			}
 			dependencies_information.dependencies[dependency_name] = {
 				source: "archived_source",
@@ -199,7 +197,6 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			// git clone --recursive git://github.com/foo/bar.git
 			for (let source of sources) {
 				dependencies_information.git_repositories.push(source);
-				// await git_clone(source, default_source_path);
 			}
 			dependencies_information.dependencies[dependency_name] = {
 				source: "source",
@@ -317,13 +314,6 @@ let _extraction_handled: { [file: string]: boolean } = {};
 
 async function extract_source_file(filename: string, source_path: string) {
 	logger.debug("extract source", filename, source_path);
-	// let parsed = parse_precompiled_source(source);
-
-	// let fileurl = parsed.url;
-	// let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
-
-	// todo: extract copy as well
-	// logger.info("extracting", filename, "into", source_path);
 	if (!_extraction_handled[filename + source_path]) {
 		await extractFull(filename, source_path);
 		_extraction_handled[filename + source_path] = true;
