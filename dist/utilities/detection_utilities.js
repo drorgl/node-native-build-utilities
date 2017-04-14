@@ -7,7 +7,7 @@ var node_gyp_version_regex = /^v(\d+)\.?(\d+)\.?(\d+)?(\.\d+)$/gm;
 var v_version_regex = /v(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
 var version_regex = /(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
 var git_version_regex = /git version (\d+)(?:\.(\d+))?(?:\.(\d+))?/gm;
-var zip7_version_regex = /7-Zip\s*(?:\[(?:\d+)\])?\s*(\d+)(?:\.(\d+))?(?:\.(\d+))?\s+Copyright\s+\(c\)/gm;
+var zip7_version_regex = /7-Zip\s*(?:\[(?:\d+)\])?\s*(\d+)(?:\.(\d+))?(?:\.(\d+))?\s+(?:\:\s+)?Copyright\s+\(c\)/gm;
 // enum platform_type {
 // 	darwin,
 // 	freebsd,

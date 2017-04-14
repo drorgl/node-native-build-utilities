@@ -9,7 +9,7 @@ const version_regex = /(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?/;
 
 const git_version_regex = /git version (\d+)(?:\.(\d+))?(?:\.(\d+))?/gm;
 
-const zip7_version_regex = /7-Zip\s*(?:\[(?:\d+)\])?\s*(\d+)(?:\.(\d+))?(?:\.(\d+))?\s+Copyright\s+\(c\)/gm;
+const zip7_version_regex = /7-Zip\s*(?:\[(?:\d+)\])?\s*(\d+)(?:\.(\d+))?(?:\.(\d+))?\s+(?:\:\s+)?Copyright\s+\(c\)/gm;
 
 // enum platform_type {
 // 	darwin,
