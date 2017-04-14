@@ -89,11 +89,11 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 	let package_filename = path.join(default_source_path, package_name);
 
-	logger.info("downloading", repo.username, repo.repo,packageAccessor.node_package.version, package_name, package_filename);
+	logger.info("downloading", repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename);
 	try {
-		let result = await github_accessor.download_asset(repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename);
+		let result = await github_accessor.download_asset(repo.username, repo.repo, `v${packageAccessor.node_package.version}`, package_name, package_filename);
 	} catch (e) {
-		logger.error("unable to retrieve dependency, fallback to build");
+		logger.error("unable to retrieve dependency, fallback to build", e);
 		return false;
 	}
 
