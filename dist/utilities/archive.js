@@ -52,10 +52,7 @@ exports.test = test;
 function extractFull(archive, dest) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, myTask.extractFull(archive, dest, {})];
-                case 1: return [2 /*return*/, _a.sent()];
-            }
+            return [2 /*return*/, myTask.extractFull(archive, dest, {}).promise];
         });
     });
 }

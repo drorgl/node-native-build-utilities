@@ -98,6 +98,7 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 	}
 
 	if (!(await pfs.exists(package_filename))) {
+		logger.error("file was downloaded but not found(?!)");
 		return false;
 	}
 

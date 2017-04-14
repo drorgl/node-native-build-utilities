@@ -10,8 +10,8 @@ export async function test(archive: string): Promise<string[]> {
 	return myTask.test(archive).promise;
 }
 
-export async function extractFull(archive: string, dest: string): Promise<any> {
-	return await myTask.extractFull(archive, dest, {});
+export async function extractFull(archive: string, dest: string): Promise<string[]> {
+	return myTask.extractFull(archive, dest, {}).promise;
 }
 
 export async function addFull(archive: string, files: string[]): Promise<any> {

@@ -131,6 +131,7 @@ function attempt_prebuilt_install(selected_platform, selected_arch) {
                 case 6: return [4 /*yield*/, pfs.exists(package_filename)];
                 case 7:
                     if (!(_a.sent())) {
+                        logger.error("file was downloaded but not found(?!)");
                         return [2 /*return*/, false];
                     }
                     _a.label = 8;

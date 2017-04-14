@@ -26,10 +26,10 @@ process.on("SIGINT", () => {
 	} else {
 		await download(downloadurl, filename, true);
 		console.log("exists", await pfs.exists(filename));
-		try{
-		console.log("tested", await archive.test(filename));
-		}catch (e){
-			console.log("failed to test",e);
+		try {
+			console.log("tested", await archive.test(filename));
+		} catch (e) {
+			console.log("failed to test", e);
 		}
 	}
 })();
