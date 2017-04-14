@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "node addon native build utilities",
   "bin": {
-    "nnbu-dependency": "dist/dependency.js",
-    "nnbu-configure": "dist/native_configure.js",
-    "nnbu-publish": "dist/publish-github.js",
-    "nnbu-pack": "dist/pack.js",
-    "nnbu-run": "dist/run.js",
-    "nnbu-check": "dist/check_config.js",
-    "nnbu-generate-binding": "dist/generate_binding.js"
+    "nnbu-dependency": "scripts/dependency.js",
+    "nnbu-configure": "scripts/native_configure.js",
+    "nnbu-publish": "scripts/publish-github.js",
+    "nnbu-pack": "scripts/pack.js",
+    "nnbu-run": "scripts/run.js",
+    "nnbu-check": "scripts/check_config.js",
+    "nnbu-generate-binding": "scripts/generate_binding.js"
   },
   "main": "index.js",
   "scripts": {
