@@ -37,6 +37,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var _this = this;
 exports.__esModule = true;
 var download_accessor_1 = require("./accessors/download-accessor");
+var archive = require("./utilities/archive");
+var pfs = require("./utilities/promisified_fs");
 // console.log(process.argv);
 if (process.argv.length < 4) {
     console.log("usage:");
@@ -51,21 +53,39 @@ process.on("SIGINT", function () {
     download_accessor_1.cancel(downloadurl);
 });
 (function () { return __awaiter(_this, void 0, void 0, function () {
-    var _a, _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, e_1;
+    return __generator(this, function (_k) {
+        switch (_k.label) {
             case 0:
                 if (!size_only) return [3 /*break*/, 2];
                 _b = (_a = console).log;
                 _c = ["size:"];
                 return [4 /*yield*/, download_accessor_1.download_size(downloadurl)];
             case 1:
-                _b.apply(_a, _c.concat([_d.sent()]));
-                return [3 /*break*/, 3];
-            case 2:
-                download_accessor_1.download(downloadurl, filename, true);
-                _d.label = 3;
-            case 3: return [2 /*return*/];
+                _b.apply(_a, _c.concat([_k.sent()]));
+                return [3 /*break*/, 8];
+            case 2: return [4 /*yield*/, download_accessor_1.download(downloadurl, filename, true)];
+            case 3:
+                _k.sent();
+                _e = (_d = console).log;
+                _f = ["exists"];
+                return [4 /*yield*/, pfs.exists(filename)];
+            case 4:
+                _e.apply(_d, _f.concat([_k.sent()]));
+                _k.label = 5;
+            case 5:
+                _k.trys.push([5, 7, , 8]);
+                _h = (_g = console).log;
+                _j = ["tested"];
+                return [4 /*yield*/, archive.test(filename)];
+            case 6:
+                _h.apply(_g, _j.concat([_k.sent()]));
+                return [3 /*break*/, 8];
+            case 7:
+                e_1 = _k.sent();
+                console.log("failed to test", e_1);
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); })();

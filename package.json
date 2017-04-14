@@ -21,7 +21,7 @@
     "configure": "node-gyp configure",
     "tslint": "tslint -c tslint.json 'src/**/*.ts'",
     "bla": "ts-node src/tmp_test.ts",
-    "download": "ts-node src/download.ts https://github.com/drorgl/opencv.module/releases/download/v3.2.0/opencv.module.v3.2.0.7z bla.7z",
+    "download": "ts-node src/download.ts https://github.com/drorgl/node-alvision/releases/download/v1.0.0/alvision-v1.0.0-48-win32-x64.7z bla.7z",
     "check": "ts-node src/check_config.ts p1 p2 p3",
     "update_abi": "ts-node src/utilities/abi_updater.ts",
     "test": "ts-node tests/file_utilities.ts"

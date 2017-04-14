@@ -1,4 +1,6 @@
 import { cancel, download, download_size } from "./accessors/download-accessor";
+import * as archive from "./utilities/archive";
+import * as pfs from "./utilities/promisified_fs";
 
 // console.log(process.argv);
 
@@ -22,6 +24,12 @@ process.on("SIGINT", () => {
 	if (size_only) {
 		console.log("size:", await download_size(downloadurl));
 	} else {
-		download(downloadurl, filename, true);
+		await download(downloadurl, filename, true);
+		console.log("exists", await pfs.exists(filename));
+		try{
+		console.log("tested", await archive.test(filename));
+		}catch (e){
+			console.log("failed to test",e);
+		}
 	}
 })();

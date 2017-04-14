@@ -152,15 +152,15 @@ function download(downloadurl, filename, displayProgress) {
             });
             res.on("end", function () {
                 if (file != null) {
-                    file.end();
+                    file.close();
                 }
                 logger.info("downloaded ", filesize, "bytes");
                 if (_file_streams[downloadurl] && filesize === _file_streams[downloadurl].length) {
                     delete _file_streams[downloadurl];
                     // adding timeout to let node js flush the file to disk
-                    setTimeout(function () {
+                    setImmediate(function () {
                         resolve(true);
-                    }, 100);
+                    });
                 }
                 else if (filesize > 0) {
                     resolve(false);

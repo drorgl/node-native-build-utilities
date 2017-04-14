@@ -6,6 +6,10 @@ import crypto = require("crypto");
 
 let myTask = new node7z();
 
+export async function test(archive: string): Promise<string[]> {
+	return myTask.test(archive).promise;
+}
+
 export async function extractFull(archive: string, dest: string): Promise<any> {
 	return await myTask.extractFull(archive, dest, {});
 }

@@ -41,6 +41,14 @@ var ProgressBar = require("progress");
 var pfs = require("./promisified_fs");
 var crypto = require("crypto");
 var myTask = new node_7z_1["default"]();
+function test(archive) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, myTask.test(archive).promise];
+        });
+    });
+}
+exports.test = test;
 function extractFull(archive, dest) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
