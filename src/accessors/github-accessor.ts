@@ -6,7 +6,8 @@ import promptly = require("promptly");
 import ini = require("ini");
 import * as logger from "../utilities/logger";
 
-import { cancel, download } from "./download-accessor";
+import * as dependencyAccessor from "./dependency-accessor";
+// import { cancel, download } from "./download-accessor";
 
 import { node_package } from "./package-accessor";
 
@@ -69,9 +70,9 @@ export interface IOwner {
 }
 
 export interface IPermission {
-	"admin": boolean;
-	"push": boolean;
-	"pull": boolean;
+	admin: boolean;
+	push: boolean;
+	pull: boolean;
 }
 
 export interface IRepo {
@@ -179,23 +180,23 @@ export interface IAsset {
 }
 
 export interface IRelease {
-	"url": string;
-	"html_url": string;
-	"assets_url": string;
-	"upload_url": string;
-	"tarball_url": string;
-	"zipball_url": string;
-	"id": number;
-	"tag_name": string;
-	"target_commitish": string;
-	"name": string;
-	"body": string;
-	"draft": boolean;
-	"prerelease": boolean;
-	"created_at": Date;
-	"published_at": Date;
-	"author": IUser;
-	"assets": IAsset[];
+	url: string;
+	html_url: string;
+	assets_url: string;
+	upload_url: string;
+	tarball_url: string;
+	zipball_url: string;
+	id: number;
+	tag_name: string;
+	target_commitish: string;
+	name: string;
+	body: string;
+	draft: boolean;
+	prerelease: boolean;
+	created_at: Date;
+	published_at: Date;
+	author: IUser;
+	assets: IAsset[];
 }
 
 export interface IErrorDetail {
@@ -348,7 +349,7 @@ export class GitHubAccessor {
 
 	public async download_asset(owner: string, repo: string, release_name: string, filename: string, localfilename: string) {
 		let downloadurl = `https://github.com/${owner}/${repo}/releases/download/${release_name}/${filename}`;
-		await download(downloadurl, localfilename, true);
+		await dependencyAccessor.get_package(downloadurl, localfilename);
 	}
 
 	private async test_authentication(): Promise<boolean> {

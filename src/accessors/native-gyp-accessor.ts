@@ -32,37 +32,21 @@ interface IDependency {
 
 }
 
-export interface INativeGyp {
-	node_gyp_configure_parameters?: string;
-	node_gyp_build_parameters? : string;
-	dependencies: { [dependencyId: string]: IDependency };
+export interface INativeBinary {
+	module_name: string; // quantlib
+	module_path: string; // ./build/Release/quantlib.node - add multiple filters!
+	publish_repo: string; // github user/repo
+	package_name: string; // '{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz';
 }
 
-// function merge_dependency(depA : IDependency, depB : IDependency) : IDependency{
-// 	let depNew = depA;
-// 	for (let pkg of depB.packages){
-// 		if (depNew.packages.indexOf(pkg) == -1){
-// 			depNew.packages.push(pkg);
-// 		}
-// 	}
-// }
+export interface INativeGyp {
+	node_gyp_configure_parameters?: string;
+	node_gyp_build_parameters?: string;
 
-// export function merge(nativeGypA : INativeGyp, nativeGypB : INativeGyp) : INativeGyp{
-// 	if (nativeGypA && nativeGypA.dependencies && (!nativeGypB || !nativeGypB.dependencies)){
-// 		return nativeGypA;
-// 	}else if (nativeGypB && nativeGypB.dependencies && (!nativeGypA || !nativeGypA.dependencies)){
-// 		return nativeGypB;
-// 	}
+	binary: INativeBinary;
 
-// 	let ngNew = nativeGypA;
-// 	for (let depId of Object.keys(nativeGypB.dependencies)){
-// 		if (!ngNew.dependencies[depId]){
-// 			ngNew.dependencies[depId] = nativeGypB.dependencies[depId];
-// 		}else{
-
-// 		}
-// 	}
-// }
+	dependencies: { [dependencyId: string]: IDependency };
+}
 
 export async function exists(): Promise<boolean> {
 	return pfs.exists(NATIVE_GYP_FILENAME);

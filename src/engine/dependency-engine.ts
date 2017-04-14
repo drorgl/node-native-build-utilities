@@ -7,7 +7,8 @@ import semver = require("semver");
 import path = require("path");
 import fs = require("fs");
 import url = require("url");
-import { cancel, download, download_size } from "../accessors/download-accessor";
+// import { cancel, download, download_size } from "../accessors/download-accessor";
+import * as dependencyAccessor from "../accessors/dependency-accessor";
 import * as gitAccessor from "../accessors/git-accessor";
 import { extractFull } from "../utilities/archive";
 import * as logger from "../utilities/logger";
@@ -221,12 +222,12 @@ export async function download_precompiled_sources(precompiled_sources: nativeGy
 	for (let source of precompiled_sources) {
 		if (source.source) {
 			await download_source(source.source, source_path);
-			await extract_source_file(path.join(source_path, parse_precompiled_source( source.source).filename), source_path);
+			await extract_source_file(path.join(source_path, parse_precompiled_source(source.source).filename), source_path);
 		}
 
 		if (source.copy) {
 			await download_source(source.copy, source_path);
-			await extract_source_file(path.join(source_path, parse_precompiled_source( source.copy).filename), source_path);
+			await extract_source_file(path.join(source_path, parse_precompiled_source(source.copy).filename), source_path);
 		}
 	}
 }
@@ -248,7 +249,7 @@ export async function download_archived_sources(git_repositories: Array<string |
 		logger.debug("archive path", source_archive_file, "extract path", extract_path);
 
 		await download_source(source_archive, source_path);
-		await extract_source_file(path.join(source_path, parse_precompiled_source( source_archive).filename), path.join( source_path, extract_path));
+		await extract_source_file(path.join(source_path, parse_precompiled_source(source_archive).filename), path.join(source_path, extract_path));
 	}
 }
 
@@ -266,7 +267,7 @@ async function download_file(fileurl: string, filename: string) {
 		return;
 	}
 	if (fs.existsSync(filename)) {
-		let filesize = await download_size(fileurl);
+		let filesize = await dependencyAccessor.get_package_size(fileurl);
 		let fileinfo = fs.statSync(filename);
 		if (fileinfo.size === filesize) {
 			logger.debug("file", filename, "already exists with the same size, assuming its the same");
@@ -278,7 +279,7 @@ async function download_file(fileurl: string, filename: string) {
 	} else {
 		logger.info("downloading", fileurl, "into", filename);
 	}
-	await download(fileurl, filename, true);
+	await dependencyAccessor.get_package(fileurl, filename);
 	_download_handled[fileurl + filename] = true;
 }
 

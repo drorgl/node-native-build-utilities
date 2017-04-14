@@ -85,12 +85,12 @@ program
 			pfs.rmdir(zipfolder);
 		}
 
-		if (program["packBinaries"]){
-			//get filename by modules/types/architecture/platform
-			//find the filenames needed to be packed through configuration in package.json
-			//7z the files
-			//upload to github/releases
-			
+		if (program["packBinaries"]) {
+			// get filename by modules/types/architecture/platform
+			// find the filenames needed to be packed through configuration in package.json
+			// 7z the files
+			// upload to github/releases
+
 		}
 	} catch (e) {
 		console.log("error", e);

@@ -1,9 +1,9 @@
 // tslint:disable-next-line:no-var-requires
 let DeepMerge = require("deep-merge");
 
-function indexOfDeep(arr: any[], value: any) : number{
-	for (let i = 0; i < arr.length; i++){
-		if (JSON.stringify(arr[i]) === JSON.stringify(value)){
+function indexOfDeep(arr: any[], value: any): number {
+	for (let i = 0; i < arr.length; i++) {
+		if (JSON.stringify(arr[i]) === JSON.stringify(value)) {
 			return i;
 		}
 	}

@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 
-import fs = require("fs");
-
+//import fs = require("fs");
+import * as pfs from "./utilities/promisified_fs";
+import path = require("path");
 import commander = require("commander");
-import { node_package } from "./accessors/package-accessor";
+
+import * as buildAccessor from "./accessors/build-accessor";
+import * as githubAccessor from "./accessors/github-accessor";
+import * as packageAccessor from "./accessors/package-accessor";
+import * as abiReleases from "./utilities/abi_releases";
 
 import * as nativeGyp from "./accessors/native-gyp-accessor";
 import * as detection from "./utilities/detection_utilities";
@@ -13,6 +18,8 @@ import * as dependencyEngine from "./engine/dependency-engine";
 import * as nativeConfiguration from "./accessors/native-configuration-accessor";
 import * as logger from "./utilities/logger";
 import * as merger from "./utilities/object_utilities";
+
+import { extractFull } from "./utilities/archive";
 
 let default_toolset: string = null;
 let default_toolset_version: string = null;
@@ -26,12 +33,12 @@ if (detection.msbuild_version) {
 
 let default_source_path = "./build.sources";
 
-logger.info("native build configuration", node_package.version);
+logger.info("native build configuration", packageAccessor.node_package.version);
 
 // if build type == current platform
 commander
-	.version(node_package.version)
-//TODO: add a way to install from github.com/releases....
+	.version(packageAccessor.node_package.version)
+	// TODO: add a way to install from github.com/releases....
 	.option("-f, --force [type]", "force setup of package/binary/source")
 	.option("-p, --platform [type]", "assume platform is win/linux", process.platform)
 	.option("-a, --arch [architecture]", "assume architecture is x64/ia32/arm", process.arch)
@@ -40,6 +47,11 @@ commander
 	.option("-p,  --source-path", "assume source path", default_source_path)
 	.option("-v, --verify", "verify configuration")
 	.parse(process.argv);
+
+process.on("SIGINT", () => {
+	logger.error("Caught interrupt signal");
+	process.exit(1);
+});
 
 // read native_gyp.json
 if (!nativeGyp.exists()) {
@@ -59,8 +71,42 @@ if (!detection.z7_version) {
 	process.exit(1);
 }
 
+async function attempt_prebuilt_install(selected_platform: string, selected_arch: string) {
+	let current_native_gyp = await nativeGyp.read();
+
+	let version_info = await abiReleases.get_current_node_version();
+
+	let package_name = buildAccessor.get_module_package_name(current_native_gyp.binary, {
+		module_name: (current_native_gyp.binary && current_native_gyp.binary.module_name) ? current_native_gyp.binary.module_name : packageAccessor.node_package.name,
+		version: packageAccessor.node_package.version,
+		node_abi: version_info.modules,
+		platform: selected_platform,
+		arch: selected_arch
+	});
+
+	let github_accessor = new githubAccessor.GitHubAccessor();
+	let repo = packageAccessor.parse_repository();
+	// githubAccessor.download_asset()
+
+	let package_filename = path.join(default_source_path, package_name);
+
+	try {
+		let result = github_accessor.download_asset(repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename);
+	} catch (e) {
+		logger.error("unable to retrieve dependency, fallback to build");
+		return false;
+	}
+
+	if (!(await pfs.exists(package_filename))) {
+		return false;
+	}
+
+	await extractFull(package_filename, path.join("./", "build/Release"));
+}
+
 (async () => {
 	try {
+
 		// TODO: read ALL native gyps in current package and node_modules
 		let native_gyps = await nativeGyp.read_all_native_gyps("./");
 		// let native_gyp = await nativeGyp.read();
@@ -98,8 +144,16 @@ if (!detection.z7_version) {
 		logger.info(" toolset version:", selected_toolset_version);
 		logger.info(" source path:", default_source_path);
 
-		if (!fs.existsSync(default_source_path)) {
-			fs.mkdirSync(default_source_path);
+		if (!await pfs.exists(default_source_path)) {
+			await pfs.mkdir(default_source_path);
+		}
+
+		// if no parameter specified, attempt to retrieve the precompiled binary
+		if (!commander["force"]) {
+			let result = await attempt_prebuilt_install(selected_platform, selected_arch);
+			if (result) {
+				process.exit(0);
+			}
 		}
 
 		let configuration: nativeConfiguration.INativeConfiguration = {
@@ -182,6 +236,8 @@ if (!detection.z7_version) {
 
 		await nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration);
 
+		await buildAccessor.configure();
+		await buildAccessor.build();
 	} catch (e) {
 		logger.error("unable to configure", e, e.stackTrace);
 		process.exit(1);

@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var fs = require("fs");
+var path = require("path");
 var bluebird = require("bluebird");
 var minimatch = require("minimatch");
 exports.readdir = bluebird.promisify(fs.readdir);
@@ -151,7 +152,7 @@ function filter_glob(pattern, files) {
         var retfiles;
         return __generator(this, function (_a) {
             retfiles = files.filter(function (v, i, a) {
-                return !minimatch.filter(normalize_path(pattern), { dot: true })(normalize_path(v), i, a);
+                return !minimatch.filter(path.normalize(normalize_path(pattern)), { dot: true })(path.normalize(normalize_path(v)), i, a);
             });
             return [2 /*return*/, retfiles];
         });

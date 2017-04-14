@@ -42,6 +42,11 @@ commander
 	.option("-g, --logs", "dump logs to nnbu.*.log")
 	.parse(process.argv);
 
+process.on("SIGINT", () => {
+	logger.error("Caught interrupt signal");
+	process.exit(1);
+});
+
 if (commander["logs"]) {
 	let timestamp = new Date().getTime().toString();
 	logger.log_to_file("nncu." + timestamp + ".log");
@@ -76,7 +81,7 @@ logger.info("arguments", process.argv);
 			let dep = native_configuration.dependencies[commander["dependency"]];
 			if (dep) {
 				logger.debug("looking for dependency", dep);
-				if (dep.source === "source" || dep.source === "archived_source" || (dep.source.indexOf("source") !== -1 ) || (dep.source.indexOf("archived_source") !== -1)) {
+				if (dep.source === "source" || dep.source === "archived_source" || (dep.source.indexOf("source") !== -1) || (dep.source.indexOf("archived_source") !== -1)) {
 					let gyp_sources = "";
 					for (let gyp_src of dep.gyp_sources) {
 						let gyp_source = dependencyEngine.gyp_source_parse(gyp_src);
@@ -106,7 +111,7 @@ logger.info("arguments", process.argv);
 					}
 
 					console.log(headers);
-				} else if (dep.source === "source"  || (dep.source.indexOf("source") !== -1)) {
+				} else if (dep.source === "source" || (dep.source.indexOf("source") !== -1)) {
 					// ignore, should be handled by "dependency" section
 				}
 			}
@@ -123,7 +128,7 @@ logger.info("arguments", process.argv);
 						pkg_configs += " " + pkg_source;
 					}
 					console.log(pkg_configs);
-				} else if (dep.source === "prebuilt"  || (dep.source.indexOf("prebuilt") !== -1)) {
+				} else if (dep.source === "prebuilt" || (dep.source.indexOf("prebuilt") !== -1)) {
 					// iterate through libraries in native_gyp.json, return the headers path for each matching (arch/platform/etc') header
 					let libraries = "";
 					for (let header of dep.pre_libraries) {

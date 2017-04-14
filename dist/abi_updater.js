@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -34,17 +35,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var _this = this;
+exports.__esModule = true;
+var abiReleases = require("./utilities/abi_releases");
 (function () { return __awaiter(_this, void 0, void 0, function () {
     var ver;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 console.log("retrieving list of node versions");
-                return [4 /*yield*/, get_node_versions()];
+                return [4 /*yield*/, abiReleases.get_node_versions(true)];
             case 1:
                 ver = _a.sent();
-                console.log("saving to", abi_filename);
-                fs.writeFileSync(abi_filename, JSON.stringify(ver, null, "\t"), { encoding: "utf8" });
+                if (ver) {
+                    console.log("saved successfully");
+                }
                 return [2 /*return*/];
         }
     });

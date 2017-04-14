@@ -1,8 +1,9 @@
+import * as abiReleases from "./utilities/abi_releases";
 
 (async () => {
-    console.log("retrieving list of node versions");
-    let ver = await get_node_versions();
-
-    console.log("saving to",abi_filename);
-    fs.writeFileSync(abi_filename, JSON.stringify(ver, null, "\t"), { encoding: "utf8" });
+	console.log("retrieving list of node versions");
+	let ver = await abiReleases.get_node_versions(true);
+	if (ver) {
+		console.log("saved successfully");
+	}
 })();

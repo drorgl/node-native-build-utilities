@@ -41,7 +41,8 @@ var semver = require("semver");
 var path = require("path");
 var fs = require("fs");
 var url = require("url");
-var download_accessor_1 = require("../accessors/download-accessor");
+//import { cancel, download, download_size } from "../accessors/download-accessor";
+var dependencyAccessor = require("../accessors/dependency-accessor");
 var gitAccessor = require("../accessors/git-accessor");
 var archive_1 = require("../utilities/archive");
 var logger = require("../utilities/logger");
@@ -338,7 +339,7 @@ function download_file(fileurl, filename) {
                         return [2 /*return*/];
                     }
                     if (!fs.existsSync(filename)) return [3 /*break*/, 2];
-                    return [4 /*yield*/, download_accessor_1.download_size(fileurl)];
+                    return [4 /*yield*/, dependencyAccessor.get_package_size(fileurl)];
                 case 1:
                     filesize = _a.sent();
                     fileinfo = fs.statSync(filename);
@@ -354,7 +355,7 @@ function download_file(fileurl, filename) {
                 case 2:
                     logger.info("downloading", fileurl, "into", filename);
                     _a.label = 3;
-                case 3: return [4 /*yield*/, download_accessor_1.download(fileurl, filename, true)];
+                case 3: return [4 /*yield*/, dependencyAccessor.get_package(fileurl, filename)];
                 case 4:
                     _a.sent();
                     _download_handled[fileurl + filename] = true;

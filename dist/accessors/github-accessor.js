@@ -42,7 +42,8 @@ var path = require("path");
 var promptly = require("promptly");
 var ini = require("ini");
 var logger = require("../utilities/logger");
-var download_accessor_1 = require("./download-accessor");
+var dependencyAccessor = require("./dependency-accessor");
+//import { cancel, download } from "./download-accessor";
 var package_accessor_1 = require("./package-accessor");
 var GITHUB_APPLICATION_NAME = "github-node-publisher";
 var THIS_PACKAGE_NAME = GITHUB_APPLICATION_NAME + " " + package_accessor_1.node_package.name;
@@ -268,7 +269,7 @@ var GitHubAccessor = (function () {
                 switch (_a.label) {
                     case 0:
                         downloadurl = "https://github.com/" + owner + "/" + repo + "/releases/download/" + release_name + "/" + filename;
-                        return [4 /*yield*/, download_accessor_1.download(downloadurl, localfilename, true)];
+                        return [4 /*yield*/, dependencyAccessor.get_package(downloadurl, localfilename)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];

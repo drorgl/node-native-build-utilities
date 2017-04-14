@@ -83,12 +83,13 @@ function get_remote_node_versions() {
     });
 }
 exports.get_remote_node_versions = get_remote_node_versions;
-function get_node_versions() {
+function get_node_versions(use_fresh) {
     return __awaiter(this, void 0, void 0, function () {
         var _a, _b, _c, e_1;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
+                    if (!!use_fresh) return [3 /*break*/, 3];
                     if (_node_versions) {
                         return [2 /*return*/, _node_versions];
                     }
@@ -119,32 +120,15 @@ function get_node_versions() {
     });
 }
 exports.get_node_versions = get_node_versions;
-function get_current_node_version() {
+function get_node_version(version) {
     return __awaiter(this, void 0, void 0, function () {
         var node_versions, abi_version;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    if (process && process.versions && process.versions.modules) {
-                        return [2 /*return*/, {
-                                version: process.version,
-                                modules: process.versions.modules,
-                                arch: process.arch,
-                                platform: process.platform
-                            }];
-                    }
-                    if (process && process.config && process.config.variables && process.config.variables.node_module_version) {
-                        return [2 /*return*/, {
-                                version: process.version,
-                                modules: process.config.variables.node_module_version,
-                                arch: process.arch,
-                                platform: process.platform
-                            }];
-                    }
-                    return [4 /*yield*/, get_node_versions()];
+                case 0: return [4 /*yield*/, get_node_versions()];
                 case 1:
                     node_versions = _a.sent();
-                    abi_version = node_versions.find(function (i) { return i.version == process.version; });
+                    abi_version = node_versions.find(function (i) { return i.version == version; });
                     if (abi_version && abi_version.modules) {
                         return [2 /*return*/, {
                                 version: process.version,
@@ -155,6 +139,30 @@ function get_current_node_version() {
                     }
                     return [2 /*return*/];
             }
+        });
+    });
+}
+exports.get_node_version = get_node_version;
+function get_current_node_version() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            if (process && process.versions && process.versions.modules) {
+                return [2 /*return*/, {
+                        version: process.version,
+                        modules: process.versions.modules,
+                        arch: process.arch,
+                        platform: process.platform
+                    }];
+            }
+            if (process && process.config && process.config.variables && process.config.variables.node_module_version) {
+                return [2 /*return*/, {
+                        version: process.version,
+                        modules: process.config.variables.node_module_version,
+                        arch: process.arch,
+                        platform: process.platform
+                    }];
+            }
+            return [2 /*return*/, get_node_version(process.version)];
         });
     });
 }

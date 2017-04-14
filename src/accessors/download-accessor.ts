@@ -206,8 +206,6 @@ export function download(downloadurl: string, filename: string, displayProgress:
 	});
 }
 
-
-
 export function request_get(request_url: string): Promise<Buffer> {
 	return new Promise<Buffer>((resolve, reject) => {
 

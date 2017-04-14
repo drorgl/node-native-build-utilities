@@ -35,49 +35,90 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-var downloadAccessor = require("./download-accessor");
-//TODO: caching layer between download-accessor and nnbu
-var os = require("os");
-var path = require("path");
-//allow parameter --disable-cache
-var cache_dir = process.env.NNBU_CACHE || path.join(os.homedir(), '.nnbu');
-function get_dependency(dependency_url) {
+var child_process = require("child_process");
+function spawn_promise(cmd, argv, cwd) {
+    return new Promise(function (resolve, reject) {
+        var child = child_process.spawn(cmd, argv, { shell: true, cwd: cwd, stdio: "inherit" });
+        child.on("close", function (ucode) {
+            resolve(ucode);
+        });
+    });
 }
-//specific dependency/all
-function clear_cache(dependency_url) {
-}
-function cancel(package_url) {
+function build(argv) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, downloadAccessor.cancel(package_url)];
+                case 0: return [4 /*yield*/, spawn_promise("node-gyp", ["build", argv])];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
     });
 }
-exports.cancel = cancel;
-function get_package_size(package_url) {
+exports.build = build;
+function clean(argv) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, downloadAccessor.download_size(package_url)];
+                case 0: return [4 /*yield*/, spawn_promise("node-gyp", ["clean", argv])];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
     });
 }
-exports.get_package_size = get_package_size;
-function get_package(package_url, filename) {
+exports.clean = clean;
+function configure(argv) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, downloadAccessor.download(package_url, filename, true)];
+                case 0: return [4 /*yield*/, spawn_promise("node-gyp", ["configure", argv])];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
     });
 }
-exports.get_package = get_package;
-//'{module_name}-v{version}-{node_abi}-{platform}-{arch}.tar.gz';
-//# sourceMappingURL=dependency-accessor.js.map
+exports.configure = configure;
+function rebuild(argv) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, spawn_promise("node-gyp", ["rebuild", argv])];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+}
+exports.rebuild = rebuild;
+function install(argv) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, spawn_promise("node-gyp", ["install", argv])];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+}
+exports.install = install;
+function list(argv) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, spawn_promise("node-gyp", ["list", argv])];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+}
+exports.list = list;
+function remove(argv) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, spawn_promise("node-gyp", ["remove", argv])];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+}
+exports.remove = remove;
+//# sourceMappingURL=node-gyp-accessor.js.map

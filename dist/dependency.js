@@ -70,6 +70,10 @@ commander
     .option("-c, --copy [name]", "retrieve files to copy to output")
     .option("-g, --logs", "dump logs to nnbu.*.log")
     .parse(process.argv);
+process.on("SIGINT", function () {
+    logger.error("Caught interrupt signal");
+    process.exit(1);
+});
 if (commander["logs"]) {
     var timestamp = new Date().getTime().toString();
     logger.log_to_file("nncu." + timestamp + ".log");

@@ -1,114 +1,118 @@
-import * as merger from "./object_utilities";
 import { request_get } from "../accessors/download-accessor";
+import * as merger from "./object_utilities";
 import * as pfs from "./promisified_fs";
 import path = require("path");
 
 const iojs_releases_url = "https://iojs.org/download/release/index.json";
 const node_releases_url = "https://nodejs.org/download/release/index.json";
 
-const abi_filename = path.join(__dirname,"abi.json");
-let _node_versions : INodeVersion[] = null;
+const abi_filename = path.join(__dirname, "abi.json");
+let _node_versions: INodeVersion[] = null;
 
 interface INodeVersion {
-    version: string; //v7.9.0
-    date: string;//2017-04-11
-    files: string[];//["aix-ppc64", "headers", "linux-arm64", "linux-armv6l", "linux-armv7l", "linux-ppc64le", "linux-x64", "linux-x86", "osx-x64-pkg", "osx-x64-tar", "src", "sunos-x64", "sunos-x86", "win-x64-exe", "win-x64-msi", "win-x86-exe", "win-x86-msi"], 
-    npm: string;//4.2.0
-    v8: string;//5.5.372.43
-    uv: string;//1.11.0
-    zlib: string;//1.2.11
-    openssl: string;//1.0.2k
-    modules: string;//51
-    lts: boolean;//false
+	version: string; // v7.9.0
+	date: string; // 2017-04-11
+	files: string[]; // ["aix-ppc64", "headers", "linux-arm64", "linux-armv6l", "linux-armv7l", "linux-ppc64le", "linux-x64", "linux-x86", "osx-x64-pkg", "osx-x64-tar", "src", "sunos-x64", "sunos-x86", "win-x64-exe", "win-x64-msi", "win-x86-exe", "win-x86-msi"],
+	npm: string; // 4.2.0
+	v8: string; // 5.5.372.43
+	uv: string; // 1.11.0
+	zlib: string; // 1.2.11
+	openssl: string; // 1.0.2k
+	modules: string; // 51
+	lts: boolean; // false
 }
 
-function sort_function(a:INodeVersion, b:INodeVersion) : number{
-    //compare versions
-    var i, diff;
-    var segmentsA = a.version.substr(1).split('.');
-    var segmentsB = b.version.substr(1).split('.');
-    var l = Math.min(segmentsA.length, segmentsB.length);
+function sort_function(a: INodeVersion, b: INodeVersion): number {
+	// compare versions
+	// let i, diff;
+	let segmentsA = a.version.substr(1).split(".");
+	let segmentsB = b.version.substr(1).split(".");
+	let l = Math.min(segmentsA.length, segmentsB.length);
 
-    for (i = 0; i < l; i++) {
-        diff = parseInt(segmentsB[i], 10) - parseInt(segmentsA[i], 10);
-        if (diff) {
-            return diff;
-        }
-    }
-    if (segmentsA.length - segmentsB.length != 0){
-        return segmentsA.length - segmentsB.length;
-    }
+	for (let i = 0; i < l; i++) {
+		let diff = parseInt(segmentsB[i], 10) - parseInt(segmentsA[i], 10);
+		if (diff) {
+			return diff;
+		}
+	}
+	if (segmentsA.length - segmentsB.length !== 0) {
+		return segmentsA.length - segmentsB.length;
+	}
 
-    //compare module
-    return parseInt(b.modules || "0") - parseInt(a.modules || "0");
+	// compare module
+	return parseInt(b.modules || "0") - parseInt(a.modules || "0");
 }
-
 
 export async function get_remote_node_versions(): Promise<INodeVersion[]> {
-    let iojs_releases: INodeVersion[] = JSON.parse((await request_get(iojs_releases_url)).toString("utf8"));
-    let node_releases: INodeVersion[] = JSON.parse((await request_get(node_releases_url)).toString("utf8"));
+	let iojs_releases: INodeVersion[] = JSON.parse((await request_get(iojs_releases_url)).toString("utf8"));
+	let node_releases: INodeVersion[] = JSON.parse((await request_get(node_releases_url)).toString("utf8"));
 
-    let versions = merger.merge(iojs_releases, node_releases);
-    versions.sort(sort_function);
-    return versions;
+	let versions = merger.merge(iojs_releases, node_releases);
+	versions.sort(sort_function);
+	return versions;
 }
 
-export async function get_node_versions() : Promise<INodeVersion[]>{
-    if (_node_versions){
-        return _node_versions;
-    }
+export async function get_node_versions(use_fresh?: boolean): Promise<INodeVersion[]> {
+	if (!use_fresh) {
+		if (_node_versions) {
+			return _node_versions;
+		}
 
-    if (await pfs.exists(abi_filename)){
-         _node_versions = JSON.parse(await pfs.readFile(abi_filename,"utf8"));
-    }
+		if (await pfs.exists(abi_filename)) {
+			_node_versions = JSON.parse(await pfs.readFile(abi_filename, "utf8"));
+		}
+	}
 
-    try{
-        _node_versions = await get_remote_node_versions();
-        await pfs.writeFile(abi_filename,"utf8",JSON.stringify(_node_versions,null,"\t"));
-        return _node_versions;
-    }catch (e){
-        console.error("unable to update abi file",e,abi_filename);
-    }
+	try {
+		_node_versions = await get_remote_node_versions();
+		await pfs.writeFile(abi_filename, "utf8", JSON.stringify(_node_versions, null, "\t"));
+		return _node_versions;
+	} catch (e) {
+		console.error("unable to update abi file", e, abi_filename);
+	}
 }
 
-export interface IFullConfig{
-    version: string;//node version v7.9.0
-    modules: string;//abi module number 51
-    arch: string; //architecture x64
-    platform: string; //platform win32
+export interface IFullConfig {
+	version: string; // node version v7.9.0
+	modules: string; // abi module number 51
+	arch: string; // architecture x64
+	platform: string; // platform win32
 }
 
-export async function get_current_node_version() : Promise<IFullConfig>{
-    if (process && process.versions && process.versions.modules){
-        return {
-            version: process.version,
-            modules:process.versions.modules,
-            arch: process.arch,
-            platform: process.platform
-        };
-    }
-
-    if (process && process.config && process.config.variables && (process.config.variables as any).node_module_version){
-        return {
-            version: process.version,
-            modules:(process.config.variables as any).node_module_version,
-            arch: process.arch,
-            platform: process.platform
-        };
-    }
-
-    let node_versions = await get_node_versions();
-    let abi_version = node_versions.find(i=>i.version == process.version);
-    if (abi_version && abi_version.modules){
-        return {
-            version: process.version,
-            arch: process.arch,
-            platform: process.platform,
-            modules: abi_version.modules
-        };
-    }
+export async function get_node_version(version: string): Promise<IFullConfig> {
+	let node_versions = await get_node_versions();
+	let abi_version = node_versions.find((i) => i.version === version);
+	if (abi_version && abi_version.modules) {
+		return {
+			version: process.version,
+			arch: process.arch,
+			platform: process.platform,
+			modules: abi_version.modules
+		};
+	}
 }
 
+export async function get_current_node_version(): Promise<IFullConfig> {
+	if (process && process.versions && process.versions.modules) {
+		return {
+			version: process.version,
+			modules: process.versions.modules,
+			arch: process.arch,
+			platform: process.platform
+		};
+	}
+
+	if (process && process.config && process.config.variables && (process.config.variables as any).node_module_version) {
+		return {
+			version: process.version,
+			modules: (process.config.variables as any).node_module_version,
+			arch: process.arch,
+			platform: process.platform
+		};
+	}
+
+	return get_node_version(process.version);
+}
 
 // process
 //   version: 'v6.5.0',
@@ -178,5 +182,3 @@ export async function get_current_node_version() : Promise<IFullConfig>{
 //        v8_random_seed: 0,
 //        v8_use_snapshot: true,
 //        want_separate_host_toolset: 0 } },
-        
-
