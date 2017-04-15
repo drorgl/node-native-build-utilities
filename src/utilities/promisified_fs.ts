@@ -82,7 +82,7 @@ export async function find_all_files(base_path: string, level?: number): Promise
 		let full_path = path_join(base_path, item);
 		let stat_ = await stat(full_path);
 		if (stat_.isDirectory()) {
-			if (level < 4 || !level) {
+			if (level < 10 || !level) {
 				let files = await find_all_files(full_path, (level || 0) + 1);
 				all_files = all_files.concat(files);
 			}
