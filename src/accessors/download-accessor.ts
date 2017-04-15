@@ -185,6 +185,9 @@ export function download(downloadurl: string, filename: string, displayProgress:
 			res.on("end", () => {
 				if (file != null) {
 					file.close();
+					file.end();
+					file = null;
+					_file_streams[downloadurl].filestream = null;
 				}
 				logger.info("downloaded ", filesize, "bytes");
 
