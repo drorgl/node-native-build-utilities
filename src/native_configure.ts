@@ -74,6 +74,11 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 	logger.info("attempting to download a prebuilt binary");
 	let current_native_gyp = await nativeGyp.read();
 
+	if (!current_native_gyp.binary){
+		logger.warn("no binary definition, can't install prebuilt binaries");
+		return false;
+	}
+
 	let version_info = await abiReleases.get_current_node_version();
 
 	let package_name = buildAccessor.get_module_package_name(current_native_gyp.binary, {
