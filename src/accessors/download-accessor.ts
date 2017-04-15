@@ -84,6 +84,14 @@ export function download_size(downloadurl: string): Promise<number> {
 	});
 }
 
+function delay(ms: number): Promise<any> {
+	return new Promise<any>((resolve, reject) => {
+		setTimeout(() => {
+			resolve();
+		}, ms);
+	});
+}
+
 export function download(downloadurl: string, filename: string, displayProgress: boolean): Promise<boolean> {
 	return new Promise<boolean>((resolve, reject) => {
 		let filename_only = path.basename(filename);
@@ -120,6 +128,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 		let file: fs.WriteStream = null;
 		let bar: ProgressBar = null;
 		let filesize = 0;
+		let filebyteswritten = 0;
 
 		req.on("response", (res: http_.ClientResponse) => {
 			if (res.statusCode === 404) {
@@ -169,26 +178,43 @@ export function download(downloadurl: string, filename: string, displayProgress:
 					return;
 				}
 
-				filesize += chunk.length;
+				let chunklength = chunk.length;
+
+				filesize += chunklength;
 				if (file != null) {
-					file.write(chunk);
+
+					file.write(chunk, () => {
+						filebyteswritten += chunklength;
+					});
 				}
 				if (displayProgress) {
 					if (bar) {
-						bar.tick(chunk.length);
+						bar.tick(chunklength);
 					} else {
 						process.stdout.write(".");
 					}
 				}
 			});
 
-			res.on("end", () => {
+			res.on("end", async () => {
 				if (file != null) {
-					file.close();
+					let maxwait = 1000;
+					while ((filebyteswritten < filesize) && (maxwait > 0)) {
+						maxwait--;
+						await delay(1);
+					}
+					if (maxwait < 1) {
+						logger.warn("maximum wait time reached, file not written properly");
+					}
+
 					file.end();
+
 					file = null;
 					_file_streams[downloadurl].filestream = null;
+
+					await delay(1);
 				}
+
 				logger.info("downloaded ", filesize, "bytes");
 
 				if (_file_streams[downloadurl] && filesize === _file_streams[downloadurl].length) {
