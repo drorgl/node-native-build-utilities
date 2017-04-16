@@ -2,6 +2,7 @@ import child_process = require("child_process");
 
 function spawn_promise(cmd: string, argv?: string[], cwd?: string): Promise<number> {
 	return new Promise<number>((resolve, reject) => {
+		console.log("executing", cmd, argv);
 		let child = child_process.spawn(cmd, argv, { shell: true, cwd, stdio: "inherit" });
 		child.on("close", (ucode: number) => {
 			resolve(ucode);

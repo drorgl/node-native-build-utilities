@@ -224,8 +224,12 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 		await nativeConfiguration.save(nativeConfiguration.NATIVE_CONFIGURATION_FILE, configuration);
 
-		await buildAccessor.configure();
-		await buildAccessor.build();
+		if (!(await buildAccessor.configure())) {
+			throw new Error("unable to configure node-gyp");
+		}
+		if (!(await buildAccessor.build())) {
+			throw new Error("unable to build node-gyp");
+		}
 	} catch (e) {
 		logger.error("unable to configure", e, e.stackTrace);
 		process.exit(1);

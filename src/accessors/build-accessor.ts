@@ -33,6 +33,7 @@ function parse_options(configure_params: string): IGypArgs {
 	if (configure_params) {
 
 		if (configure_params.startsWith("-- ")) {
+			configure_params = configure_params.substr("-- ".length);
 			gyp_arguments = gyp_arguments.concat(configure_params.split(" "));
 		} else {
 			let ngparameters = configure_params.split(" -- ")[0];
