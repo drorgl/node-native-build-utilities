@@ -13,7 +13,7 @@ import * as dependencyAccessor from "./dependency-accessor";
 import { node_package } from "./package-accessor";
 
 const GITHUB_APPLICATION_NAME = "github-node-publisher";
-const THIS_PACKAGE_NAME = GITHUB_APPLICATION_NAME;
+const THIS_PACKAGE_NAME = GITHUB_APPLICATION_NAME + " @ " + os.hostname();
 
 // tslint:disable-next-line:max-line-length
 const email_regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
