@@ -2,25 +2,24 @@ import * as pfs from "../src/utilities/promisified_fs";
 import tape = require("tape");
 import chalk = require("chalk");
 
-var errorColor = chalk.red.bold;
-var okColor = chalk.green.bold;
-var level = 0;
-
+let errorColor = chalk.red.bold;
+let okColor = chalk.green.bold;
+let level = 0;
 
 function tablevel() {
-	var retval = "";
-	for (var i = 0; i < level; i++) {
+	let retval = "";
+	for (let i = 0; i < level; i++) {
 		retval += "\t";
 	}
 	return retval;
 }
 
-var results = {
+let results = {
 	passed: 0,
 	failed: 0
 };
 
-var tapestream = tape.createStream({ objectMode: true });
+let tapestream = tape.createStream({ objectMode: true });
 
 interface ITapeRow {
 	type: string;
@@ -41,15 +40,15 @@ interface ITapeRow {
 	expected: any;
 }
 
-tapestream.on('data', (row: ITapeRow) => {
-	if (typeof row == typeof "") {
+tapestream.on("data", (row: ITapeRow) => {
+	if (typeof row === typeof "") {
 		console.log(tablevel() + row);
 	}
-	else if (row.type == "end") {
+	else if (row.type === "end") {
 		console.log();
 		level--;
 	}
-	else if (row.type == "test") {
+	else if (row.type === "test") {
 		level++;
 		console.log();
 		console.log(tablevel() + "%d. Testing %s", row.id, row.name);
@@ -58,7 +57,7 @@ tapestream.on('data', (row: ITapeRow) => {
 		if (row.ok) {
 			results.passed++;
 			console.log(tablevel() + okColor("%d. \t %s \t %s"), row.id, row.ok, row.name);
-			if (row.operator == "throws" && row.actual != undefined) {
+			if (row.operator === "throws" && row.actual !== undefined) {
 				console.log(tablevel() + okColor(" threw: %s"), row.actual);
 			}
 		}
@@ -68,16 +67,15 @@ tapestream.on('data', (row: ITapeRow) => {
 			console.log(tablevel() + errorColor("\t expected: %s actual: %s"), row.expected, row.actual);
 		}
 	}
-	//console.log(JSON.stringify(row))
+	// console.log(JSON.stringify(row))
 });
 
-tapestream.on('end', () => {
+tapestream.on("end", () => {
 	console.log("passed:", results.passed);
 	console.log("failed:", results.failed);
 });
 
-
-tape('test glob filter', async (t) => {
+tape("glob filter", async (t) => {
 	let files = [
 		".git",
 		".hello",
@@ -104,7 +102,6 @@ tape('test glob filter', async (t) => {
 		".gitignore"
 	]);
 
-
 	t.deepEqual(await pfs.filter_glob("./.git", files), [
 		".hello",
 		"hello.world",
@@ -118,3 +115,5 @@ tape('test glob filter', async (t) => {
 	]);
 	t.end();
 });
+
+

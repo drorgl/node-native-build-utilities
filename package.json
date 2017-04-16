@@ -24,7 +24,7 @@
     "download": "ts-node src/download.ts https://github.com/drorgl/node-alvision/releases/download/v1.0.0/alvision-v1.0.0-48-win32-x64.7z bla.7z",
     "check": "ts-node src/check_config.ts p1 p2 p3",
     "update_abi": "ts-node src/utilities/abi_updater.ts",
-    "test": "ts-node tests/file_utilities.ts"
+    "test": "ts-node tests/file_utilities.ts && ts-node tests/versions.ts"
   },
   "repository": {
     "type": "git",

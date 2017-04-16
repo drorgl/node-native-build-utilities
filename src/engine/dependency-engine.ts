@@ -3,7 +3,7 @@ import * as nativeConfiguration from "../accessors/native-configuration-accessor
 import * as nativeGyp from "../accessors/native-gyp-accessor";
 import * as pkg_config from "../accessors/pkg-config-accessor";
 import * as detection from "../utilities/detection_utilities";
-import semver = require("semver");
+
 import path = require("path");
 import fs = require("fs");
 import url = require("url");
@@ -11,6 +11,8 @@ import * as dependencyAccessor from "../accessors/dependency-accessor";
 import * as gitAccessor from "../accessors/git-accessor";
 import { extractFull } from "../utilities/archive";
 import * as logger from "../utilities/logger";
+
+import * as versionUtility from "../utilities/version";
 
 export interface IDependenciesInformation {
 	dependencies: nativeConfiguration.IDependencies;
@@ -52,7 +54,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 						failed_packages = true;
 					} else {
 						let pkg_version = pkg_config.modversion(package_name);
-						if (!semver.satisfies(detection.normalize_version(pkg_version), dependency.pkgconfig[package_name])) {
+						if (!versionUtility.satisfies(versionUtility.normalize_version(pkg_version), dependency.pkgconfig[package_name])) {
 							logger.warn("package", package_name, "exists but version", pkg_version, "does not match -", dependency.pkgconfig[package_name]);
 							failed_packages = true;
 						}
@@ -100,7 +102,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 					(!prebuilt_source.arch || prebuilt_source.arch === configuration.arch) &&
 					(!prebuilt_source.platform || prebuilt_source.platform === configuration.platform) &&
 					(!prebuilt_source.toolset || prebuilt_source.toolset === configuration.toolset) &&
-					(!prebuilt_source.toolset_version || semver.satisfies(configuration.toolset_version, prebuilt_source.toolset_version))) {
+					(!prebuilt_source.toolset_version || versionUtility.satisfies(configuration.toolset_version, prebuilt_source.toolset_version))) {
 
 					precompiled_header_sources.push(prebuilt_source);
 				}
@@ -118,7 +120,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 					(!prebuilt_source.arch || prebuilt_source.arch === configuration.arch) &&
 					(!prebuilt_source.platform || prebuilt_source.platform === configuration.platform) &&
 					(!prebuilt_source.toolset || prebuilt_source.toolset === configuration.toolset) &&
-					(!prebuilt_source.toolset_version || semver.satisfies(configuration.toolset_version, prebuilt_source.toolset_version))) {
+					(!prebuilt_source.toolset_version || versionUtility.satisfies(configuration.toolset_version, prebuilt_source.toolset_version))) {
 
 					precompiled_library_sources.push(prebuilt_source);
 				}

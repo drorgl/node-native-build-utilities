@@ -53,7 +53,7 @@ export async function parse_folder(folder: string): Promise<string[]> {
 	if ((await pfs.exists(path.join(folder, ".gitignore")))) {
 		let gitignore = (await pfs.readFile(path.join(folder, ".gitignore"), "utf8")).split(/\r?\n/);
 		for (let ignore_pattern of gitignore) {
-			if (ignore_pattern.startsWith("#")){
+			if (ignore_pattern.startsWith("#")) {
 				continue;
 			}
 			ignore_pattern = ignore_pattern.trim();
