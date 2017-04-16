@@ -14,6 +14,7 @@ export interface IConfiguredDependency {
 
 	packages?: string[];
 	pkg_includes?: string[];
+	pkg_cflags?: string[];
 	pkg_libraries?: string[];
 
 	gyp_sources?: Array<string | nativeGyp.ISource>;

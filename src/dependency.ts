@@ -36,6 +36,7 @@ commander
 	.option("-v, --verify", "verify configuration")
 	.option("-d, --dependency [name]", "retrieve dependency by name")
 	.option("-h, --headers [name]", "retrieve headers by name")
+	.option("-e, --cflags [name]", "retrieve cflags by name")
 	.option("-l, --libs [name]", "retrieve libraries by name")
 	.option("-f, --lib-fix", "appends .. before the library path, its a workaround to a bug in node-gyp where library root is different from includes root")
 	.option("-c, --copy [name]", "retrieve files to copy to output")
@@ -52,7 +53,7 @@ if (commander["logs"]) {
 	logger.log_to_file("nncu." + timestamp + ".log");
 }
 
-if (commander["dependency"] || commander["headers"] || commander["libs"] || commander["copy"]) {
+if (commander["dependency"] || commander["headers"] || commander["libs"] || commander["copy"] || commander["cflags"]) {
 	logger.log_to_console(false);
 }
 
@@ -106,6 +107,29 @@ logger.info("arguments", process.argv);
 					}
 
 					console.log(headers);
+				} else if (dep.source === "source" || (dep.source.indexOf("source") !== -1)) {
+					// ignore, should be handled by "dependency" section
+				}
+			}
+		}
+
+		//
+		if (commander["cflags"]) {
+			let dep = native_configuration.dependencies[commander["cflags"]];
+			if (dep) {
+				logger.debug("looking for cflags", dep);
+				if (dep.source === "pkg-config" || (dep.source.indexOf("pkg-config") !== -1)) {
+					// iterate through pkg-config in native_gyp.json, call pkgconfig on each one and return an aggregate
+					let pkg_configs = "";
+					for (let pkg_cflags of dep.pkg_cflags) {
+						pkg_configs += " " + pkg_cflags;
+					}
+					console.log(pkg_configs);
+				} else if (dep.source === "prebuilt" || (dep.source.indexOf("prebuilt") !== -1)) {
+					// iterate through cflags in native_gyp.json, return the cflags path for each matching (arch/platform/etc') header
+					let cflags = "";
+
+					console.log(cflags);
 				} else if (dep.source === "source" || (dep.source.indexOf("source") !== -1)) {
 					// ignore, should be handled by "dependency" section
 				}

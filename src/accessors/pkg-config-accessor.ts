@@ -16,6 +16,7 @@ export function modversion(module_name: string) {
 export enum module_info {
 	libs,
 	cflags,
+	includedir,
 }
 
 export function info(module_name: string, info_type: module_info) {
@@ -26,6 +27,9 @@ export function info(module_name: string, info_type: module_info) {
 			break;
 		case module_info.cflags:
 			command = "--cflags";
+			break;
+		case module_info.includedir:
+			command = "--variable=includedir";
 			break;
 		default:
 			throw new Error("not implemented");

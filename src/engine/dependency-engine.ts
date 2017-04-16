@@ -64,13 +64,15 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 				if (failed_packages === false) {
 					let packages = [];
 					let packages_includes = [];
+					let packages_cflags = [];
 					let packages_libraries = [];
 					for (let package_name in dependency.pkgconfig) {
 						if (!dependency.pkgconfig.hasOwnProperty(package_name)) {
 							continue;
 						}
 						packages.push(package_name);
-						packages_includes.push(pkg_config.info(package_name, pkg_config.module_info.cflags));
+						packages_cflags.push(pkg_config.info(package_name, pkg_config.module_info.cflags));
+						packages_includes.push(pkg_config.info(package_name, pkg_config.module_info.includedir));
 						packages_libraries.push(pkg_config.info(package_name, pkg_config.module_info.libs));
 					}
 
@@ -78,7 +80,8 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 						source: "pkg-config",
 						packages,
 						pkg_includes: packages_includes,
-						pkg_libraries: packages_libraries
+						pkg_libraries: packages_libraries,
+						pkg_cflags: packages_cflags
 					};
 				}
 			}
