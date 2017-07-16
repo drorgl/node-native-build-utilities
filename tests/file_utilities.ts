@@ -2,6 +2,9 @@ import * as pfs from "../src/utilities/promisified_fs";
 import tape = require("tape");
 import chalk = require("chalk");
 
+import * as npm_package_arg from "../src/accessors/npm-package-arg";
+import * as package_accessor from "../src/accessors/package-accessor";
+
 const errorColor = chalk.red.bold;
 const okColor = chalk.green.bold;
 let level = 0;
@@ -109,5 +112,15 @@ tape("glob filter", async (t) => {
 		".git/test2.txt",
 		".gitignore"
 	]);
+	t.end();
+});
+
+tape("parse repository", (t) => {
+	const npa_value = npm_package_arg.npa("https://github.com/drorgl/node-alvision.git");
+	t.equal(npa_value.hosted.shortcut(), "github:drorgl/node-alvision");
+
+	const parsed = package_accessor.parse_shortcut(npa_value.hosted.shortcut());
+	t.deepEqual( parsed, {host_type: "github", username: "drorgl", repo: "node-alvision"});
+
 	t.end();
 });

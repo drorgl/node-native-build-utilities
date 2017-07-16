@@ -7,7 +7,7 @@ export interface IHostedParameters {
 	sshurl: string;
 	https: string;
 	directUrl: string;
-	shortcut: string;
+	shortcut: () => string;
 }
 
 export interface IPackageArgs {

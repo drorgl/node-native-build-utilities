@@ -72,13 +72,13 @@ interface IParsedRepository {
 	repo: string;
 }
 
-interface IHostInfo {
+export interface IHostInfo {
 	host_type: string;
 	username: string;
 	repo: string;
 }
 
-function parse_shortcut(shortcut: string): IHostInfo {
+export function parse_shortcut(shortcut: string): IHostInfo {
 	const shortcut_regex_with_host = /(\S*)[:](\S*)[\/](\S*)/;
 	const shortcut_regex_without_host = /(\S*)[\/](\S*)/;
 	if (shortcut_regex_with_host.test(shortcut)) {
@@ -110,11 +110,11 @@ export function parse_repository(): IParsedRepository {
 		parsed = npa(node_package.repository.url);
 	}
 
-	const parsed_shortcut = parse_shortcut(parsed.hosted.shortcut);
+	const parsed_shortcut = parse_shortcut(parsed.hosted.shortcut());
 
 	return {
 		repository_type: (parsed.type === "hosted") ? parsed.hosted.type : parsed.type,
-		url: (parsed.hosted) ? parsed.hosted.shortcut : parsed.spec,
+		url: (parsed.hosted) ? parsed.hosted.shortcut() : parsed.spec,
 		username: parsed_shortcut.username,
 		repo: parsed_shortcut.repo
 	};
