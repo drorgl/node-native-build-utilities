@@ -61,7 +61,7 @@ export function exists(file: string | Buffer): Promise<boolean> {
 
 export function readFile(filename: string, encoding: string | null): Promise<string | Buffer> {
 	return new Promise<any>((resolve, reject) => {
-		fs.readFile(filename, (err, data) => {
+		fs.readFile(filename, encoding, (err, data) => {
 			if (err) {
 				reject(err);
 			} else {
@@ -71,13 +71,13 @@ export function readFile(filename: string, encoding: string | null): Promise<str
 	});
 }
 
-export function writeFile(filename: string, encoding: string, data: any): Promise<boolean> {
-	return new Promise<boolean>((resolve, reject) => {
+export function writeFile(filename: string, encoding: string, data: any): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
 		fs.writeFile(filename, data, { encoding }, (err) => {
 			if (err) {
 				reject(err);
 			} else {
-				resolve(true);
+				resolve();
 			}
 		});
 	});
