@@ -30,7 +30,7 @@ if (detection.msbuild_version) {
 	default_toolset_version = detection.gcc_version.normalized_version;
 }
 
-let default_source_path = "./build.sources";
+const default_source_path = "./build.sources";
 
 logger.info("native build configuration", packageAccessor.node_package.version);
 
@@ -72,16 +72,16 @@ if (!detection.z7_version) {
 
 async function attempt_prebuilt_install(selected_platform: string, selected_arch: string) {
 	logger.info("attempting to download a prebuilt binary");
-	let current_native_gyp = await nativeGyp.read();
+	const current_native_gyp = await nativeGyp.read();
 
 	if (!current_native_gyp.binary) {
 		logger.warn("no binary definition, can't install prebuilt binaries");
 		return false;
 	}
 
-	let version_info = await abiReleases.get_current_node_version();
+	const version_info = await abiReleases.get_current_node_version();
 
-	let package_name = buildAccessor.get_module_package_name(current_native_gyp.binary, {
+	const package_name = buildAccessor.get_module_package_name(current_native_gyp.binary, {
 		module_name: (current_native_gyp.binary && current_native_gyp.binary.module_name) ? current_native_gyp.binary.module_name : packageAccessor.node_package.name,
 		version: packageAccessor.node_package.version,
 		node_abi: version_info.modules,
@@ -89,14 +89,14 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 		arch: selected_arch
 	});
 
-	let github_accessor = new githubAccessor.GitHubAccessor();
-	let repo = packageAccessor.parse_repository();
+	const github_accessor = new githubAccessor.GitHubAccessor();
+	const repo = packageAccessor.parse_repository();
 
-	let package_filename = path.join(default_source_path, package_name);
+	const package_filename = path.join(default_source_path, package_name);
 
 	logger.info("downloading", repo.username, repo.repo, packageAccessor.node_package.version, package_name, package_filename);
 	try {
-		let result = await github_accessor.download_asset(repo.username, repo.repo, `v${packageAccessor.node_package.version}`, package_name, package_filename);
+		const result = await github_accessor.download_asset(repo.username, repo.repo, `v${packageAccessor.node_package.version}`, package_name, package_filename);
 	} catch (e) {
 		logger.error("unable to retrieve dependency, fallback to build", e);
 		return false;
@@ -124,7 +124,7 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 		// platform win/linux
 		const platforms = ["darwin", "freebsd", "linux", "sunos", "win32"];
-		let selected_platform = commander["platform"];
+		const selected_platform = commander["platform"];
 		if (platforms.indexOf(selected_platform) === -1) {
 			logger.error("platform should be one of the following:", platforms);
 			process.exit(1);
@@ -132,7 +132,7 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 		// architectrure x64/ia32/arm/arm64
 		const architectures = ["x64", "ia32", "arm"];
-		let selected_arch = commander["arch"];
+		const selected_arch = commander["arch"];
 		if (architectures.indexOf(selected_arch) === -1) {
 			logger.error("architectue shoule be one of the following:", architectures);
 			process.exit(1);
@@ -140,13 +140,13 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 		// toolset vc/gcc
 		const toolsets = ["vc", "gcc"];
-		let selected_toolset = commander["toolset"];
+		const selected_toolset = commander["toolset"];
 		if (toolsets.indexOf(selected_toolset) === -1) {
 			logger.error("toolset should be one of the following:", toolsets);
 			process.exit(1);
 		}
 
-		let selected_toolset_version = commander["toolsetVersion"];
+		const selected_toolset_version = commander["toolsetVersion"];
 
 		logger.info("configuration:");
 		logger.info(" platform: ", selected_platform);
@@ -161,13 +161,13 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 		// if no parameter specified, attempt to retrieve the precompiled binary
 		if (!commander["force"]) {
-			let result = await attempt_prebuilt_install(selected_platform, selected_arch);
+			const result = await attempt_prebuilt_install(selected_platform, selected_arch);
 			if (result) {
 				process.exit(0);
 			}
 		}
 
-		let configuration: nativeConfiguration.INativeConfiguration = {
+		const configuration: nativeConfiguration.INativeConfiguration = {
 			platform: selected_platform,
 			arch: selected_arch,
 			toolset: selected_toolset,
@@ -176,7 +176,7 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 			dependencies: {}
 		};
 
-		let last_configured_dependencies: dependencyEngine.IDependenciesInformation = null;
+		const last_configured_dependencies: dependencyEngine.IDependenciesInformation = null;
 
 		let last_native_gyps: nativeGyp.INativeGyp[];
 
@@ -184,15 +184,15 @@ async function attempt_prebuilt_install(selected_platform: string, selected_arch
 
 		while (JSON.stringify(last_native_gyps) !== JSON.stringify(native_gyps) && rescan_iteration < 11) {
 
-			for (let native_gyp of native_gyps) {
+			for (const native_gyp of native_gyps) {
 				console.log("processing ", native_gyp);
 
-				let configured_dependencies = await dependencyEngine.parse_dependencies(native_gyp, configuration);
+				const configured_dependencies = await dependencyEngine.parse_dependencies(native_gyp, configuration);
 				configuration.dependencies = merger.merge<nativeConfiguration.IDependencies>(configuration.dependencies, configured_dependencies.dependencies);
 
 				logger.info("configuration:", configuration);
 
-				if (configured_dependencies.precompiled_sources, default_source_path && configured_dependencies.precompiled_sources, default_source_path.length > 0) {
+				if (configured_dependencies.precompiled_sources && configured_dependencies.precompiled_sources.length && default_source_path.length > 0) {
 					logger.info("preparing precompiled dependencies..");
 					await dependencyEngine.download_precompiled_sources(configured_dependencies.precompiled_sources, default_source_path);
 					logger.info("done");

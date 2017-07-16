@@ -22,7 +22,7 @@ export interface IDependenciesInformation {
 }
 
 export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, configuration: nativeConfiguration.INativeConfiguration): Promise<IDependenciesInformation> {
-	let dependencies_information: IDependenciesInformation = {
+	const dependencies_information: IDependenciesInformation = {
 		dependencies: {},
 		precompiled_sources: [],
 		archived_sources: [],
@@ -30,12 +30,12 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 	};
 	// let configured_dependencies: nativeConfiguration.IDependencies = {};
 
-	for (let dependency_name in native_gyp.dependencies) {
+	for (const dependency_name in native_gyp.dependencies) {
 		if (!native_gyp.dependencies.hasOwnProperty(dependency_name)) {
 			continue;
 		}
 		logger.info("checking dependencies for", dependency_name);
-		let dependency = native_gyp.dependencies[dependency_name];
+		const dependency = native_gyp.dependencies[dependency_name];
 
 		// if current architecture is node architecture, try to use pkgconfig, fallback to prebuilt, fallback to source
 		// console.log(process.platform, selected_platform, process.arch, selected_arch, detection.pkg_config_version);
@@ -44,7 +44,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			if (dependency.pkgconfig && Object.getOwnPropertyNames(dependency.pkgconfig).length > 0) {
 				let failed_packages = false;
 				// console.log(dependency.pkgconfig);
-				for (let package_name in dependency.pkgconfig) {
+				for (const package_name in dependency.pkgconfig) {
 					if (!dependency.pkgconfig.hasOwnProperty(package_name)) {
 						continue;
 					}
@@ -53,7 +53,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 						logger.warn("package", package_name, "not found");
 						failed_packages = true;
 					} else {
-						let pkg_version = pkg_config.modversion(package_name);
+						const pkg_version = pkg_config.modversion(package_name);
 						if (!versionUtility.satisfies(versionUtility.normalize_version(pkg_version), dependency.pkgconfig[package_name])) {
 							logger.warn("package", package_name, "exists but version", pkg_version, "does not match -", dependency.pkgconfig[package_name]);
 							failed_packages = true;
@@ -62,11 +62,11 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 				}
 
 				if (failed_packages === false) {
-					let packages = [];
-					let packages_includes = [];
-					let packages_cflags = [];
-					let packages_libraries = [];
-					for (let package_name in dependency.pkgconfig) {
+					const packages = [];
+					const packages_includes = [];
+					const packages_cflags = [];
+					const packages_libraries = [];
+					for (const package_name in dependency.pkgconfig) {
 						if (!dependency.pkgconfig.hasOwnProperty(package_name)) {
 							continue;
 						}
@@ -91,16 +91,16 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			continue;
 		}
 
-		let precompiled_header_sources: nativeGyp.IPrecompiledSource[] = [];
-		let precompiled_library_sources: nativeGyp.IPrecompiledSource[] = [];
+		const precompiled_header_sources: nativeGyp.IPrecompiledSource[] = [];
+		const precompiled_library_sources: nativeGyp.IPrecompiledSource[] = [];
 
 		// check prebuilt binaries are compatible with selected architecture and platform
-		for (let prebuilt_header_name in dependency.headers) {
+		for (const prebuilt_header_name in dependency.headers) {
 			if (!dependency.headers.hasOwnProperty(prebuilt_header_name)) {
 				continue;
 			}
-			let prebuilt_precompiled_source = dependency.headers[prebuilt_header_name];
-			for (let prebuilt_source of prebuilt_precompiled_source) {
+			const prebuilt_precompiled_source = dependency.headers[prebuilt_header_name];
+			for (const prebuilt_source of prebuilt_precompiled_source) {
 				if (
 					(!prebuilt_source.arch || prebuilt_source.arch === configuration.arch) &&
 					(!prebuilt_source.platform || prebuilt_source.platform === configuration.platform) &&
@@ -113,12 +113,12 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 		}
 
 		// check prebuilt binaries are compatible with selected architecture and platform
-		for (let prebuilt_library_name in dependency.libraries) {
+		for (const prebuilt_library_name in dependency.libraries) {
 			if (!dependency.libraries.hasOwnProperty(prebuilt_library_name)) {
 				continue;
 			}
-			let prebuilt_precompiled_source = dependency.libraries[prebuilt_library_name];
-			for (let prebuilt_source of prebuilt_precompiled_source) {
+			const prebuilt_precompiled_source = dependency.libraries[prebuilt_library_name];
+			for (const prebuilt_source of prebuilt_precompiled_source) {
 				if (
 					(!prebuilt_source.arch || prebuilt_source.arch === configuration.arch) &&
 					(!prebuilt_source.platform || prebuilt_source.platform === configuration.platform) &&
@@ -134,11 +134,11 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 
 		if (precompiled_header_sources.length > 0 || precompiled_library_sources.length > 0) {
 			// TODO: download/extract all prebuilt binaries
-			let precompiled_header_paths = [];
-			let precompiled_library_paths = [];
-			let precompiled_file_copy: string[] = [];
+			const precompiled_header_paths = [];
+			const precompiled_library_paths = [];
+			const precompiled_file_copy: string[] = [];
 
-			for (let source of precompiled_header_sources) {
+			for (const source of precompiled_header_sources) {
 				dependencies_information.precompiled_sources.push(source);
 				precompiled_header_paths.push(parse_precompiled_source(source.source).path);
 
@@ -147,7 +147,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 				}
 			}
 
-			for (let source of precompiled_library_sources) {
+			for (const source of precompiled_library_sources) {
 				dependencies_information.precompiled_sources.push(source);
 				precompiled_library_paths.push(parse_precompiled_source(source.source).path);
 
@@ -168,9 +168,9 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			continue;
 		}
 
-		let archived_sources: Array<string | nativeGyp.ISource> = [];
+		const archived_sources: Array<string | nativeGyp.ISource> = [];
 		if (dependency.archived_sources) {
-			for (let asource of dependency.archived_sources) {
+			for (const asource of dependency.archived_sources) {
 				archived_sources.push(asource);
 			}
 		}
@@ -178,7 +178,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 		if (archived_sources.length > 0) {
 			// TODO: download all sources, switch to the branch
 			// git clone --recursive git://github.com/foo/bar.git
-			for (let source of archived_sources) {
+			for (const source of archived_sources) {
 				dependencies_information.archived_sources.push(source);
 			}
 			dependencies_information.dependencies[dependency_name] = {
@@ -191,16 +191,16 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 			continue;
 		}
 
-		let sources: Array<string | nativeGyp.ISource> = [];
+		const sources: Array<string | nativeGyp.ISource> = [];
 
-		for (let source of dependency.sources) {
+		for (const source of dependency.sources) {
 			sources.push(source);
 		}
 
 		if (sources.length > 0) {
 			// TODO: download all sources, switch to the branch
 			// git clone --recursive git://github.com/foo/bar.git
-			for (let source of sources) {
+			for (const source of sources) {
 				dependencies_information.git_repositories.push(source);
 			}
 			dependencies_information.dependencies[dependency_name] = {
@@ -221,7 +221,7 @@ export async function parse_dependencies(native_gyp: nativeGyp.INativeGyp, confi
 }
 
 export async function download_precompiled_sources(precompiled_sources: nativeGyp.IPrecompiledSource[], source_path: string) {
-	for (let source of precompiled_sources) {
+	for (const source of precompiled_sources) {
 		if (source.source) {
 			await download_source(source.source, source_path);
 			await extract_source_file(path.join(source_path, parse_precompiled_source(source.source).filename), source_path);
@@ -235,7 +235,7 @@ export async function download_precompiled_sources(precompiled_sources: nativeGy
 }
 
 export async function download_archived_sources(git_repositories: Array<string | nativeGyp.ISource>, source_path: string) {
-	for (let source of git_repositories) {
+	for (const source of git_repositories) {
 		logger.debug("downloading archived source", source);
 
 		let source_archive: string;
@@ -245,9 +245,9 @@ export async function download_archived_sources(git_repositories: Array<string |
 			source_archive = source as string;
 		}
 
-		let source_archive_file = (source_archive.indexOf("@") !== -1) ? source_archive.substr(0, source_archive.indexOf("@")) : source_archive;
+		const source_archive_file = (source_archive.indexOf("@") !== -1) ? source_archive.substr(0, source_archive.indexOf("@")) : source_archive;
 
-		let extract_path = path.basename(source_archive_file, path.extname(source_archive_file));
+		const extract_path = path.basename(source_archive_file, path.extname(source_archive_file));
 		logger.debug("archive path", source_archive_file, "extract path", extract_path);
 
 		await download_source(source_archive, source_path);
@@ -256,21 +256,21 @@ export async function download_archived_sources(git_repositories: Array<string |
 }
 
 export async function clone_git_sources(git_repositories: Array<string | nativeGyp.ISource>, source_path: string) {
-	for (let source of git_repositories) {
+	for (const source of git_repositories) {
 		await git_clone(source, source_path);
 	}
 }
 
 // unique download flag
-let _download_handled: { [file: string]: boolean } = {};
+const _download_handled: { [file: string]: boolean } = {};
 
 async function download_file(fileurl: string, filename: string) {
 	if (_download_handled[fileurl + filename]) {
 		return;
 	}
 	if (fs.existsSync(filename)) {
-		let filesize = await dependencyAccessor.get_package_size(fileurl);
-		let fileinfo = fs.statSync(filename);
+		const filesize = await dependencyAccessor.get_package_size(fileurl);
+		const fileinfo = fs.statSync(filename);
 		if (fileinfo.size === filesize) {
 			logger.debug("file", filename, "already exists with the same size, assuming its the same");
 			_download_handled[fileurl + filename] = true;
@@ -286,8 +286,8 @@ async function download_file(fileurl: string, filename: string) {
 }
 
 async function download_source(source: string, source_path: string) {
-	let fileurl = source.substr(0, source.lastIndexOf("@"));
-	let filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
+	const fileurl = source.substr(0, source.lastIndexOf("@"));
+	const filename = path.join(source_path, path.basename(url.parse(fileurl).pathname));
 
 	await download_file(fileurl, filename);
 }
@@ -299,7 +299,7 @@ interface IPrecompiledSourceParsed {
 }
 
 function parse_precompiled_source(source: string): IPrecompiledSourceParsed {
-	let file_url_index = source.lastIndexOf("@");
+	const file_url_index = source.lastIndexOf("@");
 	if (file_url_index === -1) {
 		return {
 			url: source,
@@ -315,7 +315,7 @@ function parse_precompiled_source(source: string): IPrecompiledSourceParsed {
 	};
 }
 
-let _extraction_handled: { [file: string]: boolean } = {};
+const _extraction_handled: { [file: string]: boolean } = {};
 
 async function extract_source_file(filename: string, source_path: string) {
 	logger.debug("extract source", filename, source_path);
@@ -326,33 +326,33 @@ async function extract_source_file(filename: string, source_path: string) {
 }
 
 export function gyp_source_parse(source: string | nativeGyp.ISource): nativeGyp.ISource {
-	let src = <nativeGyp.ISource> source;
-	let ssource = <string> source;
+	let src = source as nativeGyp.ISource;
+	const ssource = source as string;
 
 	if (!src.source) {
-		let source_gyp_index = ssource.lastIndexOf("@");
+		const source_gyp_index = ssource.lastIndexOf("@");
 
 		// https://github.com/drorgl/ffmpeg.module.git#2.7
-		let source_with_branch = ssource.substr(0, source_gyp_index);
+		const source_with_branch = ssource.substr(0, source_gyp_index);
 
-		let branch_index = source_with_branch.lastIndexOf("#");
+		const branch_index = source_with_branch.lastIndexOf("#");
 
 		// https://github.com/drorgl/ffmpeg.module.git
-		let source_only = (branch_index !== -1) ? source_with_branch.substr(0, branch_index) : source_with_branch;
+		const source_only = (branch_index !== -1) ? source_with_branch.substr(0, branch_index) : source_with_branch;
 
 		// 2.7
-		let branch_only = (branch_index !== -1) ? source_with_branch.substr(branch_index + 1) : "";
+		const branch_only = (branch_index !== -1) ? source_with_branch.substr(branch_index + 1) : "";
 
 		// ffmpeg.gyp:avcodec
-		let gyp_full = ssource.substr(source_gyp_index + 1);
+		const gyp_full = ssource.substr(source_gyp_index + 1);
 
-		let gyp_target_index = gyp_full.lastIndexOf(":");
+		const gyp_target_index = gyp_full.lastIndexOf(":");
 
 		// ffmpeg.gyp
-		let gyp_file = gyp_full.substr(0, gyp_target_index);
+		const gyp_file = gyp_full.substr(0, gyp_target_index);
 
 		// avcodec
-		let gyp_target = gyp_full.substr(gyp_target_index + 1);
+		const gyp_target = gyp_full.substr(gyp_target_index + 1);
 
 		src = {
 			source: source_only,
@@ -365,11 +365,11 @@ export function gyp_source_parse(source: string | nativeGyp.ISource): nativeGyp.
 }
 
 async function git_clone(source: string | nativeGyp.ISource, cwd: string) {
-	let src = gyp_source_parse(source);
+	const src = gyp_source_parse(source);
 
-	let gitsrc = (src.source) ? src.source : <string> source;
+	const gitsrc = (src.source) ? src.source : source as string;
 
-	let repo_path = path.join(cwd, path.basename(gitsrc, path.extname(gitsrc)));
+	const repo_path = path.join(cwd, path.basename(gitsrc, path.extname(gitsrc)));
 
 	if (!fs.existsSync(repo_path)) {
 		logger.info("cloning git", gitsrc, "into", cwd);

@@ -4,7 +4,7 @@ import * as ProgressBar from "progress";
 import * as pfs from "./promisified_fs";
 import crypto = require("crypto");
 
-let myTask = new node7z();
+const myTask = new node7z();
 
 export async function test(archive: string): Promise<string[]> {
 	return myTask.test(archive).promise;
@@ -30,7 +30,7 @@ export async function addFull(archive: string, files: string[]): Promise<any> {
 		myTask.add(archive, files, { mx: "9" })
 			.promise.then((resolve_value) => {
 				(async () => {
-					let fsize = (await pfs.stat(archive)).size;
+					const fsize = (await pfs.stat(archive)).size;
 					console.log();
 					console.log(path.basename(archive), "compressed to ", pfs.human_file_size(fsize, true));
 					resolve(resolve_value);
@@ -47,11 +47,11 @@ const ignores = ["./.git/**", "./.gitignore", "./.tmp/**", "./.github-authentica
 
 export async function parse_folder(folder: string): Promise<string[]> {
 	let files = await pfs.find_all_files(folder);
-	for (let ignore_pattern of ignores) {
+	for (const ignore_pattern of ignores) {
 		files = await pfs.filter_glob(ignore_pattern, files);
 	}
 	if ((await pfs.exists(path.join(folder, ".gitignore")))) {
-		let gitignore = (await pfs.readFile(path.join(folder, ".gitignore"), "utf8")).split(/\r?\n/);
+		const gitignore = (await pfs.readFile(path.join(folder, ".gitignore"), "utf8") as string).split(/\r?\n/);
 		for (let ignore_pattern of gitignore) {
 			if (ignore_pattern.startsWith("#")) {
 				continue;

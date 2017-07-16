@@ -1,5 +1,5 @@
 // tslint:disable-next-line:no-var-requires
-let DeepMerge = require("deep-merge");
+const DeepMerge = require("deep-merge");
 
 function indexOfDeep(arr: any[], value: any): number {
 	for (let i = 0; i < arr.length; i++) {
@@ -13,8 +13,8 @@ function onlyUnique(value: any, index: number, self: any) {
 	return indexOfDeep(self, value) === index;
 }
 
-let deepmerge = DeepMerge((target: any, source: any) => {
-	let concatenated = [].concat(target, source);
+const deepmerge = DeepMerge((target: any, source: any) => {
+	const concatenated = [].concat(target, source);
 	return concatenated.filter(onlyUnique);
 });
 

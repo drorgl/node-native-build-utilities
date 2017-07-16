@@ -62,9 +62,9 @@ export function node_gyp_version_satisfies(required_version: string): boolean {
 	return versionUtility.satisfies(node_gyp_version.version, required_version);
 }
 
-let node_gyp_status = child_process.spawnSync("node-gyp", ["--version"], { shell: true });
+const node_gyp_status = child_process.spawnSync("node-gyp", ["--version"], { shell: true });
 if (node_gyp_status.status === 0) {
-	let parsed_version = node_gyp_version_regex.exec(node_gyp_status.output.join("").toString());
+	const parsed_version = node_gyp_version_regex.exec(node_gyp_status.output.join("").toString());
 	node_gyp_version = {
 		version: parsed_version[0],
 		normalized_version: versionUtility.normalize_version(parsed_version[0]),
@@ -79,9 +79,9 @@ export function msbuild_version_satisfies(required_version: string): boolean {
 	return versionUtility.satisfies(msbuild_version.version, required_version);
 }
 
-let msbuild_status = child_process.spawnSync("msbuild", ["/version"], { shell: true });
+const msbuild_status = child_process.spawnSync("msbuild", ["/version"], { shell: true });
 if (msbuild_status.status === 0) {
-	let parsed_version = msbuild_version_regex.exec(msbuild_status.output.join("").toString());
+	const parsed_version = msbuild_version_regex.exec(msbuild_status.output.join("").toString());
 	msbuild_version = {
 		version: parsed_version[0].trim(),
 		normalized_version: versionUtility.normalize_version(parsed_version[0]),
@@ -96,9 +96,9 @@ export function gcc_version_satisfies(required_version: string): boolean {
 	return versionUtility.satisfies(gcc_version.version, required_version);
 }
 
-let gcc_status = child_process.spawnSync("gcc", ["-dumpversion"], { shell: true });
+const gcc_status = child_process.spawnSync("gcc", ["-dumpversion"], { shell: true });
 if (gcc_status.status === 0) {
-	let parsed_version = gcc_status.output.join("").toString().split(".");
+	const parsed_version = gcc_status.output.join("").toString().split(".");
 	gcc_version = {
 		version: gcc_status.output.join("").toString().trim(),
 		normalized_version: versionUtility.normalize_version(gcc_status.output.join("").toString().trim()),
@@ -113,9 +113,9 @@ export function pkg_config_version_satisfies(required_version: string): boolean 
 	return versionUtility.satisfies(pkg_config_version.version, required_version);
 }
 
-let pkg_config_status = child_process.spawnSync("pkg-config", ["--version"], { shell: true });
+const pkg_config_status = child_process.spawnSync("pkg-config", ["--version"], { shell: true });
 if (pkg_config_status.status === 0) {
-	let parsed_version = pkg_config_status.output.join("").toString().split(".");
+	const parsed_version = pkg_config_status.output.join("").toString().split(".");
 	pkg_config_version = {
 		version: pkg_config_status.output.join("").toString().trim(),
 		normalized_version: versionUtility.normalize_version(parsed_version[0]),
@@ -130,9 +130,9 @@ export function git_version_satisfies(required_version: string): boolean {
 	return versionUtility.satisfies(git_version.version, required_version);
 }
 
-let git_status = child_process.spawnSync("git", ["--version"], { shell: true });
+const git_status = child_process.spawnSync("git", ["--version"], { shell: true });
 if (git_status.status === 0) {
-	let parsed_version = git_version_regex.exec(git_status.output.join("").toString()).slice(1);
+	const parsed_version = git_version_regex.exec(git_status.output.join("").toString()).slice(1);
 	git_version = {
 		version: parsed_version.join("."),
 		normalized_version: versionUtility.normalize_version(parsed_version.join(".")),
@@ -147,9 +147,9 @@ export function z7_version_satisfies(required_version: string): boolean {
 	return versionUtility.satisfies(z7_version.version, required_version);
 }
 
-let z7_status = child_process.spawnSync("7z", [], { shell: true });
+const z7_status = child_process.spawnSync("7z", [], { shell: true });
 if (z7_status.status === 0) {
-	let parsed_version = zip7_version_regex.exec(z7_status.output.join("").toString()).slice(1);
+	const parsed_version = zip7_version_regex.exec(z7_status.output.join("").toString()).slice(1);
 	z7_version = {
 		version: parsed_version.join("."),
 		normalized_version: versionUtility.normalize_version(parsed_version.join(".")),

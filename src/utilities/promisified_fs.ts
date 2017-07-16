@@ -1,11 +1,31 @@
 import fs = require("fs");
 import path = require("path");
-import bluebird = require("bluebird");
 import minimatch = require("minimatch");
 import glob = require("glob");
 
-export let readdir = bluebird.promisify<string[], string | Buffer>(fs.readdir);
-export let stat = bluebird.promisify<fs.Stats, string | Buffer>(fs.stat);
+export function readdir(path_: string | Buffer): Promise<string[]> {
+	return new Promise<string[]>((resolve, reject) => {
+		fs.readdir(path_, (err, files) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(files);
+			}
+		});
+	});
+}
+
+export function stat(path_: string | Buffer): Promise<fs.Stats> {
+	return new Promise<any>((resolve, reject) => {
+		fs.stat(path_, (err, stats) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(stats);
+			}
+		});
+	});
+}
 
 export function mkdir(file: string | Buffer): Promise<any> {
 	return new Promise<any>((resolve, reject) => {
@@ -24,9 +44,9 @@ export function rmdir(file: string | Buffer): Promise<any> {
 		fs.rmdir(file, (err) => {
 			if (err) {
 				reject(err);
-				return;
+			} else {
+				resolve();
 			}
-			resolve();
 		});
 	});
 }
@@ -39,7 +59,17 @@ export function exists(file: string | Buffer): Promise<boolean> {
 	});
 }
 
-export let readFile = bluebird.promisify<string, string, string>(fs.readFile);
+export function readFile(filename: string, encoding: string | null): Promise<string | Buffer> {
+	return new Promise<any>((resolve, reject) => {
+		fs.readFile(filename, (err, data) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(data);
+			}
+		});
+	});
+}
 
 export function writeFile(filename: string, encoding: string, data: any): Promise<boolean> {
 	return new Promise<boolean>((resolve, reject) => {
@@ -53,8 +83,29 @@ export function writeFile(filename: string, encoding: string, data: any): Promis
 	});
 }
 
-export let mkdtemp = bluebird.promisify<string, string>(fs.mkdtemp);
-export let unlink = bluebird.promisify<void, string>(fs.unlink);
+export async function mkdtemp(prefix: string): Promise<string> {
+	return new Promise<string>((resolve, reject) => {
+		fs.mkdtemp(prefix, (err, folder) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(folder);
+			}
+		});
+	});
+}
+
+export async function unlink(path_: string | Buffer): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		fs.unlink(path_, (err) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve();
+			}
+		});
+	});
+}
 
 export function normalize_path(filepath: string): string {
 	if (process.platform === "win32") {
@@ -65,8 +116,8 @@ export function normalize_path(filepath: string): string {
 }
 
 function path_join(base: string, file_path: string) {
-	let nbase = normalize_path(base);
-	let nfp = normalize_path(file_path);
+	const nbase = normalize_path(base);
+	const nfp = normalize_path(file_path);
 	if (nbase.endsWith("/") || nbase.endsWith("\\")) {
 		return nbase + nfp;
 	} else {
@@ -76,14 +127,14 @@ function path_join(base: string, file_path: string) {
 
 export async function find_all_files(base_path: string, level?: number): Promise<string[]> {
 	let all_files: string[] = [];
-	let items = await readdir(base_path);
+	const items = await readdir(base_path);
 
-	for (let item of items) {
-		let full_path = path_join(base_path, item);
-		let stat_ = await stat(full_path);
+	for (const item of items) {
+		const full_path = path_join(base_path, item);
+		const stat_ = await stat(full_path);
 		if (stat_.isDirectory()) {
 			if (level < 10 || !level) {
-				let files = await find_all_files(full_path, (level || 0) + 1);
+				const files = await find_all_files(full_path, (level || 0) + 1);
 				all_files = all_files.concat(files);
 			}
 		} else {
@@ -95,7 +146,7 @@ export async function find_all_files(base_path: string, level?: number): Promise
 }
 
 export async function filter_glob(pattern: string, files: string[]): Promise<string[]> {
-	let retfiles = files.filter((v, i, a) => {
+	const retfiles = files.filter((v, i, a) => {
 		return !minimatch.filter(path.normalize(normalize_path(pattern)), { dot: true })(path.normalize(normalize_path(v)), i, a);
 	});
 	return retfiles;
@@ -103,11 +154,11 @@ export async function filter_glob(pattern: string, files: string[]): Promise<str
 
 // http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
 export function human_file_size(bytes: number, si?: boolean): string {
-	let thresh = si ? 1000 : 1024;
+	const thresh = si ? 1000 : 1024;
 	if (Math.abs(bytes) < thresh) {
 		return bytes + " B";
 	}
-	let units = si
+	const units = si
 		? ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
 		: ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
 	let u = -1;
@@ -132,7 +183,7 @@ export function list_folder_by_pattern(pattern: string): Promise<string[]> {
 
 export async function list_folder(patterns: string[]): Promise<string[]> {
 	let files: string[] = [];
-	for (let pattern of patterns) {
+	for (const pattern of patterns) {
 		files = files.concat(await list_folder_by_pattern(pattern));
 	}
 	return files;

@@ -5,9 +5,9 @@ import fs = require("fs");
 import https_ = require("https");
 import http_ = require("http");
 // tslint:disable-next-line:no-var-requires
-let http = require("follow-redirects").http;
+const http = require("follow-redirects").http;
 // tslint:disable-next-line:no-var-requires
-let https = require("follow-redirects").https;
+const https = require("follow-redirects").https;
 import path = require("path");
 import * as logger from "../utilities/logger";
 
@@ -19,18 +19,18 @@ interface IDownloadItem {
 	request: http_.ClientRequest;
 }
 
-let _file_streams: { [downloadurl: string]: IDownloadItem } = {};
+const _file_streams: { [downloadurl: string]: IDownloadItem } = {};
 
 process.on("SIGINT", () => {
 	logger.error("Caught interrupt signal");
-	for (let file of Object.keys(_file_streams)) {
+	for (const file of Object.keys(_file_streams)) {
 		cancel(_file_streams[file].downloadurl);
 	}
 
 });
 
 export function cancel(downloadurl: string): boolean {
-	let download_item = _file_streams[downloadurl];
+	const download_item = _file_streams[downloadurl];
 	if (download_item) {
 		logger.info("cancelling ", download_item);
 		download_item.request.abort();
@@ -74,7 +74,7 @@ export function download_size(downloadurl: string): Promise<number> {
 				return;
 			}
 
-			let len = parseInt(res.headers["content-length"], 10);
+			const len = parseInt(res.headers["content-length"] as string, 10);
 			req.abort();
 			resolve(len);
 		});
@@ -94,7 +94,7 @@ function delay(ms: number): Promise<any> {
 
 export function download(downloadurl: string, filename: string, displayProgress: boolean): Promise<boolean> {
 	return new Promise<boolean>((resolve, reject) => {
-		let filename_only = path.basename(filename);
+		const filename_only = path.basename(filename);
 
 		_file_streams[downloadurl] = {
 			downloadurl,
@@ -142,7 +142,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 				return;
 			}
 
-			let len = parseInt(res.headers["content-length"], 10);
+			const len = parseInt(res.headers["content-length"] as string, 10);
 			if (len > 0) {
 				if (displayProgress) {
 					bar = new ProgressBar(filename_only + " [:bar] :percent :etas", {
@@ -156,7 +156,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 				process.stdout.write("unknown file size, downloading chunks ");
 			}
 
-			let file_directory = path.dirname(filename);
+			const file_directory = path.dirname(filename);
 			if (!fs.existsSync(file_directory)) {
 				fs.mkdir(file_directory);
 			}
@@ -178,7 +178,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 					return;
 				}
 
-				let chunklength = chunk.length;
+				const chunklength = chunk.length;
 
 				filesize += chunklength;
 				if (file != null) {
@@ -269,7 +269,7 @@ export function request_get(request_url: string): Promise<Buffer> {
 				return;
 			}
 
-			let len = parseInt(res.headers["content-length"], 10);
+			const len = parseInt(res.headers["content-length"] as string, 10);
 			if (len > 0) {
 				console.info("file length", len);
 			} else {

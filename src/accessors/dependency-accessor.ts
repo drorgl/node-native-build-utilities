@@ -3,7 +3,7 @@ import os = require("os");
 import path = require("path");
 
 // allow parameter --disable-cache
-let cache_dir = process.env.NNBU_CACHE || path.join(os.homedir(), ".nnbu");
+const cache_dir = process.env.NNBU_CACHE || path.join(os.homedir(), ".nnbu");
 
 function get_dependency(dependency_url: string) {
 	// retrieve dependency from cache or download

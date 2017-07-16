@@ -1,11 +1,7 @@
-import bluebird = require("bluebird");
 import fs = require("fs");
 import path = require("path");
 import * as pfs from "../utilities/promisified_fs";
 import * as nativeGyp from "./native-gyp-accessor";
-
-let writeFile = bluebird.promisify<void, string, any>(fs.writeFile);
-let readFile = bluebird.promisify<string, string, string>(fs.readFile);
 
 export const NATIVE_CONFIGURATION_FILE = "native_configuration.json";
 
@@ -38,7 +34,7 @@ export interface INativeConfiguration {
 }
 
 export async function save(filename: string, configuration: INativeConfiguration) {
-	await writeFile(filename, JSON.stringify(configuration, null, "\t"));
+	await pfs.writeFile(filename, "utf8", JSON.stringify(configuration, null, "\t"));
 }
 
 export function find_native_configuration_file(filename: string): Promise<string> {
@@ -58,6 +54,6 @@ export function find_native_configuration_file(filename: string): Promise<string
 }
 
 export async function load(filename: string): Promise<INativeConfiguration> {
-	let fileContents = await readFile(filename, "utf8");
+	const fileContents = await pfs.readFile(filename, "utf8") as string;
 	return JSON.parse(fileContents);
 }

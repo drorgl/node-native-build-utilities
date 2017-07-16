@@ -2,8 +2,8 @@ import * as ver from "../src/utilities/version";
 import tape = require("tape");
 import chalk = require("chalk");
 
-let errorColor = chalk.red.bold;
-let okColor = chalk.green.bold;
+const errorColor = chalk.red.bold;
+const okColor = chalk.green.bold;
 let level = 0;
 
 function tablevel() {
@@ -14,12 +14,12 @@ function tablevel() {
 	return retval;
 }
 
-let results = {
+const results = {
 	passed: 0,
 	failed: 0
 };
 
-let tapestream = tape.createStream({ objectMode: true });
+const tapestream = tape.createStream({ objectMode: true });
 
 interface ITapeRow {
 	type: string;
@@ -43,25 +43,21 @@ interface ITapeRow {
 tapestream.on("data", (row: ITapeRow) => {
 	if (typeof row === typeof "") {
 		console.log(tablevel() + row);
-	}
-	else if (row.type === "end") {
+	} else if (row.type === "end") {
 		console.log();
 		level--;
-	}
-	else if (row.type === "test") {
+	} else if (row.type === "test") {
 		level++;
 		console.log();
 		console.log(tablevel() + "%d. Testing %s", row.id, row.name);
-	}
-	else {
+	} else {
 		if (row.ok) {
 			results.passed++;
 			console.log(tablevel() + okColor("%d. \t %s \t %s"), row.id, row.ok, row.name);
 			if (row.operator === "throws" && row.actual !== undefined) {
 				console.log(tablevel() + okColor(" threw: %s"), row.actual);
 			}
-		}
-		else {
+		} else {
 			results.failed++;
 			console.log(tablevel() + errorColor("%d. \t %s \t %s"), row.id, row.ok, row.name);
 			console.log(tablevel() + errorColor("\t expected: %s actual: %s"), row.expected, row.actual);
@@ -75,7 +71,7 @@ tapestream.on("end", () => {
 	console.log("failed:", results.failed);
 });
 
-let simple_versions = [
+const simple_versions = [
 	"1.2.3.",
 	"2.32.",
 	"54.6.10",
@@ -341,38 +337,37 @@ let simple_versions = [
 ];
 
 tape("version parsing", async (t) => {
-	for (let version of simple_versions.sort()) {
+	for (const version of simple_versions.sort()) {
 		let parsed_version: string = "*bad parsing*";
 		try {
 			parsed_version = ver.parse(ver.normalize_version(version)).format();
 		} catch (e) {
-
+			// nop
 		}
 
 		t.doesNotThrow(() => {
-			t.ok(ver.parse(ver.normalize_version(version)),"parsed successfully " + version + " should be " + parsed_version);
-		},"does not throw " +  version + " should be " + parsed_version);
+			t.ok(ver.parse(ver.normalize_version(version)), "parsed successfully " + version + " should be " + parsed_version);
+		}, "does not throw " + version + " should be " + parsed_version);
 	}
 	t.end();
 });
 
 tape("version compare", async (t) => {
-	let versions = [
+	const versions = [
 		["1.0.0", "<=1.0.1"],
 		["2.0.1", "<=2.10.0"],
 		["24.3.6", "<=35.2.5"],
 		["5.2.5-3", "<=5.2.5-13"],
-		["2014.10.15-alpha.1", "<=2014.10.15-beta.1",],
+		["2014.10.15-alpha.1", "<=2014.10.15-beta.1", ],
 		["2014.10.15-alpha", "<=2014.10.15-alpha.2"],
 		["10.100.1-beta.51", "<=10.100.1-beta.61"],
 		["0.0.0", "<=0.0.0"],
 		["9.178.1350-beta.66.0.183.99999", "<=9.178.1350-beta.66.0.183.99999"]
 	];
 
-	for (let version_parts of versions) {
+	for (const version_parts of versions) {
 		t.ok(ver.satisfies(version_parts[0], version_parts[1]), version_parts[0] + " <= " + version_parts[1]);
 	}
 
 	t.end();
 });
-

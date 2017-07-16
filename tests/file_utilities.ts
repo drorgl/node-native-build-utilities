@@ -2,8 +2,8 @@ import * as pfs from "../src/utilities/promisified_fs";
 import tape = require("tape");
 import chalk = require("chalk");
 
-let errorColor = chalk.red.bold;
-let okColor = chalk.green.bold;
+const errorColor = chalk.red.bold;
+const okColor = chalk.green.bold;
 let level = 0;
 
 function tablevel() {
@@ -14,12 +14,12 @@ function tablevel() {
 	return retval;
 }
 
-let results = {
+const results = {
 	passed: 0,
 	failed: 0
 };
 
-let tapestream = tape.createStream({ objectMode: true });
+const tapestream = tape.createStream({ objectMode: true });
 
 interface ITapeRow {
 	type: string;
@@ -43,25 +43,21 @@ interface ITapeRow {
 tapestream.on("data", (row: ITapeRow) => {
 	if (typeof row === typeof "") {
 		console.log(tablevel() + row);
-	}
-	else if (row.type === "end") {
+	} else if (row.type === "end") {
 		console.log();
 		level--;
-	}
-	else if (row.type === "test") {
+	} else if (row.type === "test") {
 		level++;
 		console.log();
 		console.log(tablevel() + "%d. Testing %s", row.id, row.name);
-	}
-	else {
+	} else {
 		if (row.ok) {
 			results.passed++;
 			console.log(tablevel() + okColor("%d. \t %s \t %s"), row.id, row.ok, row.name);
 			if (row.operator === "throws" && row.actual !== undefined) {
 				console.log(tablevel() + okColor(" threw: %s"), row.actual);
 			}
-		}
-		else {
+		} else {
 			results.failed++;
 			console.log(tablevel() + errorColor("%d. \t %s \t %s"), row.id, row.ok, row.name);
 			console.log(tablevel() + errorColor("\t expected: %s actual: %s"), row.expected, row.actual);
@@ -76,7 +72,7 @@ tapestream.on("end", () => {
 });
 
 tape("glob filter", async (t) => {
-	let files = [
+	const files = [
 		".git",
 		".hello",
 		"hello.world",
@@ -115,5 +111,3 @@ tape("glob filter", async (t) => {
 	]);
 	t.end();
 });
-
-

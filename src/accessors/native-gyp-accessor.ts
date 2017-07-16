@@ -57,20 +57,20 @@ export async function read(filename?: string): Promise<INativeGyp> {
 		throw new Error("file not found");
 	}
 
-	let file = await pfs.readFile(filename || NATIVE_GYP_FILENAME, "utf8");
+	let file = await pfs.readFile(filename || NATIVE_GYP_FILENAME, "utf8") as string;
 	file = strip_json_comments(file, { whitespace: true });
-	return <INativeGyp> JSON.parse(file);
+	return JSON.parse(file) as INativeGyp;
 }
 
 export async function find_all_native_gyps(base_path: string, level?: number): Promise<string[]> {
 	let native_gyps: string[] = [];
-	let items = await pfs.readdir(base_path);
+	const items = await pfs.readdir(base_path);
 
-	for (let item of items) {
-		let stat_ = await pfs.stat(path.join(base_path, item));
+	for (const item of items) {
+		const stat_ = await pfs.stat(path.join(base_path, item));
 		if (stat_.isDirectory()) {
 			if (level < 4 || !level) {
-				let subdirectories = await find_all_native_gyps(path.join(base_path, item), (level || 0) + 1);
+				const subdirectories = await find_all_native_gyps(path.join(base_path, item), (level || 0) + 1);
 				native_gyps = native_gyps.concat(subdirectories);
 			}
 		}
@@ -83,10 +83,10 @@ export async function find_all_native_gyps(base_path: string, level?: number): P
 }
 
 export async function read_all_native_gyps(base_path: string): Promise<INativeGyp[]> {
-	let native_gyps: INativeGyp[] = [];
-	let gyp_files = await find_all_native_gyps(base_path, 0);
+	const native_gyps: INativeGyp[] = [];
+	const gyp_files = await find_all_native_gyps(base_path, 0);
 	console.log("gyp files found: ", gyp_files);
-	for (let file of gyp_files) {
+	for (const file of gyp_files) {
 		native_gyps.push(await read(file));
 	}
 	return native_gyps;

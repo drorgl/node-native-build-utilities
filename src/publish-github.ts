@@ -6,7 +6,7 @@ import * as githubAccessor from "./accessors/github-accessor";
 import { node_package } from "./accessors/package-accessor";
 import * as logger from "./utilities/logger";
 
-let github_accessor = new githubAccessor.GitHubAccessor();
+const github_accessor = new githubAccessor.GitHubAccessor();
 
 program
 	.version(node_package.version)
@@ -21,13 +21,13 @@ program
 
 	if (program["listAssets"]) {
 		logger.debug("list assets", program["listAssets"]);
-		let parameters = program["listAssets"].split("/");
-		let owner = parameters[0];
-		let repo = parameters[1];
-		let tag = (parameters.length > 1) ? parameters[2] : null;
-		let releases = await github_accessor.get_releases(owner, repo);
-		let filtered_assets = (releases.data as githubAccessor.IRelease[]) .filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
-		let merged = [].concat.apply([], filtered_assets).map((v: githubAccessor.IAsset) => {
+		const parameters = program["listAssets"].split("/");
+		const owner = parameters[0];
+		const repo = parameters[1];
+		const tag = (parameters.length > 1) ? parameters[2] : null;
+		const releases = await github_accessor.get_releases(owner, repo);
+		const filtered_assets = (releases.data as githubAccessor.IRelease[]) .filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
+		const merged = [].concat.apply([], filtered_assets).map((v: githubAccessor.IAsset) => {
 			return {
 				name: v.name,
 				size: v.size,
@@ -39,15 +39,15 @@ program
 
 	if (program["download"] && program["download"].length) {
 		logger.debug("download", program["download"]);
-		let parameters = program["download"].split("/");
-		let owner = parameters[0];
-		let repo = parameters[1];
-		let tag = parameters[2];
-		let filename = parameters[3];
+		const parameters = program["download"].split("/");
+		const owner = parameters[0];
+		const repo = parameters[1];
+		const tag = parameters[2];
+		const filename = parameters[3];
 
-		let releases = await github_accessor.get_releases(owner, repo);
-		let filtered_assets = (releases.data as githubAccessor.IRelease[]).filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
-		let asset = [].concat.apply([], filtered_assets).find((v: githubAccessor.IAsset) => v.name === filename);
+		const releases = await github_accessor.get_releases(owner, repo);
+		const filtered_assets = (releases.data as githubAccessor.IRelease[]).filter((v) => (tag) ? v.tag_name === tag : true).map((v) => v.assets);
+		const asset = [].concat.apply([], filtered_assets).find((v: githubAccessor.IAsset) => v.name === filename);
 		if (asset) {
 			logger.debug("downloading " + asset.url);
 		} else {
@@ -56,12 +56,12 @@ program
 	}
 
 	if (program["listReleases"]) {
-		let parameters = program["listReleases"].split("/");
-		let owner = parameters[0];
-		let repo = parameters[1];
-		let tag = (parameters.length > 1) ? parameters[2] : null;
-		let releases = await github_accessor.get_releases(owner, repo);
-		let filtered_releases = (releases.data as githubAccessor.IRelease[]).filter((v) => (tag) ? v.tag_name === tag : true).map((v) => {
+		const parameters = program["listReleases"].split("/");
+		const owner = parameters[0];
+		const repo = parameters[1];
+		const tag = (parameters.length > 1) ? parameters[2] : null;
+		const releases = await github_accessor.get_releases(owner, repo);
+		const filtered_releases = (releases.data as githubAccessor.IRelease[]).filter((v) => (tag) ? v.tag_name === tag : true).map((v) => {
 			return {
 				name: v.name,
 				url: v.url

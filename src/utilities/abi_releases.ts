@@ -24,12 +24,12 @@ interface INodeVersion {
 
 function sort_function(a: INodeVersion, b: INodeVersion): number {
 	// compare versions
-	let segmentsA = a.version.substr(1).split(".");
-	let segmentsB = b.version.substr(1).split(".");
-	let l = Math.min(segmentsA.length, segmentsB.length);
+	const segmentsA = a.version.substr(1).split(".");
+	const segmentsB = b.version.substr(1).split(".");
+	const l = Math.min(segmentsA.length, segmentsB.length);
 
 	for (let i = 0; i < l; i++) {
-		let diff = parseInt(segmentsB[i], 10) - parseInt(segmentsA[i], 10);
+		const diff = parseInt(segmentsB[i], 10) - parseInt(segmentsA[i], 10);
 		if (diff) {
 			return diff;
 		}
@@ -43,10 +43,10 @@ function sort_function(a: INodeVersion, b: INodeVersion): number {
 }
 
 export async function get_remote_node_versions(): Promise<INodeVersion[]> {
-	let iojs_releases: INodeVersion[] = JSON.parse((await request_get(iojs_releases_url)).toString("utf8"));
-	let node_releases: INodeVersion[] = JSON.parse((await request_get(node_releases_url)).toString("utf8"));
+	const iojs_releases: INodeVersion[] = JSON.parse((await request_get(iojs_releases_url)).toString("utf8"));
+	const node_releases: INodeVersion[] = JSON.parse((await request_get(node_releases_url)).toString("utf8"));
 
-	let versions = merger.merge(iojs_releases, node_releases);
+	const versions = merger.merge(iojs_releases, node_releases);
 	versions.sort(sort_function);
 	return versions;
 }
@@ -58,7 +58,7 @@ export async function get_node_versions(use_fresh?: boolean): Promise<INodeVersi
 		}
 
 		if (await pfs.exists(abi_filename)) {
-			_node_versions = JSON.parse(await pfs.readFile(abi_filename, "utf8"));
+			_node_versions = JSON.parse(await pfs.readFile(abi_filename, "utf8") as string);
 		}
 	}
 
@@ -79,8 +79,8 @@ export interface IFullConfig {
 }
 
 export async function get_node_version(version: string): Promise<IFullConfig> {
-	let node_versions = await get_node_versions();
-	let abi_version = node_versions.find((i) => i.version === version);
+	const node_versions = await get_node_versions();
+	const abi_version = node_versions.find((i) => i.version === version);
 	if (abi_version && abi_version.modules) {
 		return {
 			version: process.version,

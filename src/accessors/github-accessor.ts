@@ -233,7 +233,7 @@ export class GitHubAccessor {
 		console.log("checking existing file");
 		if (await pfs.exists(this._auth_cache_filename)) {
 			try {
-				this._authentication = JSON.parse(await pfs.readFile(this._auth_cache_filename, "utf8"));
+				this._authentication = JSON.parse(await pfs.readFile(this._auth_cache_filename, "utf8") as string);
 			} catch (e) {
 				logger.warn(`unable to parse authentication cache file ${AuthenticationFilename}, please delete and retry`);
 			}
@@ -253,7 +253,7 @@ export class GitHubAccessor {
 		console.log("checking console");
 		if (!this._authentication) {
 			// do console authentication
-			let success = await this.console_authentication();
+			const success = await this.console_authentication();
 			if (success) {
 				this._authenticated = true;
 			}
@@ -263,23 +263,23 @@ export class GitHubAccessor {
 	}
 
 	public async console_authentication() {
-		let useremail = await this.prompt_email();
-		let password = await this.prompt_password();
+		const useremail = await this.prompt_email();
+		const password = await this.prompt_password();
 
 		this._github.authenticate({
 			type: "basic",
 			username: useremail,
 			password
 		});
-		let authorizations: IReply<IAuthorization> = await this._github.authorization.getAll({});
-		let authorization = (authorizations.data as IAuthorization[]).find((v) =>
+		const authorizations: IReply<IAuthorization> = await this._github.authorization.getAll({});
+		const authorization = (authorizations.data as IAuthorization[]).find((v) =>
 			v.note === THIS_PACKAGE_NAME && (v.scopes.indexOf("public_repo") !== -1)
 		);
 		if (authorization) {
 			logger.info("existing authorization found, but we can't use it since there is no way to get its token");
-			let should_recreate = await this.confirm("delete current token and recreate?");
+			const should_recreate = await this.confirm("delete current token and recreate?");
 			if (should_recreate) {
-				let success = await this._github.authorization.delete({ id: authorization.id.toString() });
+				const success = await this._github.authorization.delete({ id: authorization.id.toString() });
 				if (success) {
 					logger.info("deleted successfully");
 				} else {
@@ -289,7 +289,7 @@ export class GitHubAccessor {
 			}
 		}
 
-		let new_token: IReply<IAuthorization> = await this._github.authorization.create({
+		const new_token: IReply<IAuthorization> = await this._github.authorization.create({
 			scopes: ["public_repo"],
 			note: THIS_PACKAGE_NAME
 		});
@@ -306,28 +306,28 @@ export class GitHubAccessor {
 	}
 
 	public async get_repo(owner: string, repo: string): Promise<IRepo> {
-		let result: IRepo = await this._github.repos.get({ owner, repo });
+		const result: IRepo = await this._github.repos.get({ owner, repo });
 		return result;
 	}
 
 	public async get_repos(owner: string): Promise<IRepo[]> {
-		let results: IRepo[] = await this._github.repos.getAll({});
+		const results: IRepo[] = await this._github.repos.getAll({});
 		return results;
 	}
 
 	public async get_releases(owner: string, repo: string): Promise<IReply<IRelease>> {
-		let results: IReply<IRelease> = (await this._github.repos.getReleases({ owner, repo })).data;
+		const results: IReply<IRelease> = (await this._github.repos.getReleases({ owner, repo })).data;
 		return results;
 	}
 
 	public async get_releases_by_tag(owner: string, repo: string, tag: string): Promise<IReply<IRelease>> {
-		let results: IReply<IRelease> = await this._github.repos.getReleaseByTag({ owner, repo, tag });
+		const results: IReply<IRelease> = await this._github.repos.getReleaseByTag({ owner, repo, tag });
 		return results;
 	}
 
 	public async create_release(owner: string, repo: string, tag_name: string, name: string, draft: boolean): Promise<IRelease> {
 		await this.authenticate();
-		let release: IRelease = await this._github.repos.createRelease({
+		const release: IRelease = await this._github.repos.createRelease({
 			owner,
 			repo,
 			tag_name,
@@ -341,7 +341,7 @@ export class GitHubAccessor {
 	public async upload_release_asset(owner: string, repo: string, release_id: string, filePath: string, name: string, label?: string) {
 		await this.authenticate();
 
-		let asset: IReply<IAsset> = await this._github.repos.uploadAsset({
+		const asset: IReply<IAsset> = await this._github.repos.uploadAsset({
 			owner, repo, id: release_id,
 			filePath, name, label
 		});
@@ -349,7 +349,7 @@ export class GitHubAccessor {
 	}
 
 	public async download_asset(owner: string, repo: string, release_name: string, filename: string, localfilename: string) {
-		let downloadurl = `https://github.com/${owner}/${repo}/releases/download/${release_name}/${filename}`;
+		const downloadurl = `https://github.com/${owner}/${repo}/releases/download/${release_name}/${filename}`;
 		await dependencyAccessor.get_package(downloadurl, localfilename);
 	}
 
@@ -359,7 +359,7 @@ export class GitHubAccessor {
 				type: "oauth",
 				token: this._authentication.access_token
 			});
-			let user = await this._github.users.get({});
+			const user = await this._github.users.get({});
 			return (user != null);
 		} catch (e) {
 			logger.debug("unable to check authentication", e);
@@ -373,7 +373,7 @@ export class GitHubAccessor {
 			logger.warn("git is not configured for this repository");
 			return "";
 		}
-		let gitconfig = ini.parse(await pfs.readFile(config_filename, "utf-8"));
+		const gitconfig = ini.parse(await pfs.readFile(config_filename, "utf-8") as string);
 		if (gitconfig && gitconfig.user && gitconfig.user.email) {
 			return gitconfig.user.email;
 		}
@@ -383,7 +383,7 @@ export class GitHubAccessor {
 	}
 
 	private async save_token(token: github.AccessToken) {
-		let success = await pfs.writeFile(this._auth_cache_filename, "utf8", JSON.stringify(token, null, "\t"));
+		const success = await pfs.writeFile(this._auth_cache_filename, "utf8", JSON.stringify(token, null, "\t"));
 		if (!success) {
 			logger.error("unable to save token, read only?");
 		}
@@ -397,16 +397,16 @@ export class GitHubAccessor {
 					reject(err);
 					return;
 				}
-				resolve(<boolean> <any> value);
+				resolve(value as any as boolean);
 			});
 		});
 	}
 
 	private prompt_email(): Promise<string> {
 		return new Promise<string>(async (resolve, reject) => {
-			let defaultUsername = await this.read_default_email();
+			const defaultUsername = await this.read_default_email();
 
-			let emailValidator = (value: string): string => {
+			const emailValidator = (value: string): string => {
 				if (email_regex.test(value)) {
 					return value;
 				}

@@ -14,8 +14,8 @@ interface IProcessInfo {
 
 export function get_module_package_name(binary: nativeGyp.INativeBinary, processInfo: IProcessInfo): string {
 	let ret = binary.package_name || DEFAULT_PACKAGE_NAME;
-	for (let key of Object.getOwnPropertyNames(processInfo)) {
-		let rep = new RegExp(`{${key}}`, "i");
+	for (const key of Object.getOwnPropertyNames(processInfo)) {
+		const rep = new RegExp(`{${key}}`, "i");
 		ret = ret.replace(rep, (processInfo as any)[key]);
 	}
 	return ret;
@@ -36,9 +36,9 @@ function parse_options(configure_params: string): IGypArgs {
 			configure_params = configure_params.substr("-- ".length);
 			gyp_arguments = gyp_arguments.concat(configure_params.split(" "));
 		} else {
-			let ngparameters = configure_params.split(" -- ")[0];
-			let node_gyp_args = (ngparameters.length > 0) ? ngparameters[0].split(" ") : [];
-			let gyp_args = (ngparameters.length > 1) ? ngparameters[1].split(" ") : [];
+			const ngparameters = configure_params.split(" -- ")[0];
+			const node_gyp_args = (ngparameters.length > 0) ? ngparameters[0].split(" ") : [];
+			const gyp_args = (ngparameters.length > 1) ? ngparameters[1].split(" ") : [];
 
 			node_gyp_arguments = node_gyp_arguments.concat(node_gyp_args);
 			gyp_arguments = gyp_arguments.concat(gyp_args);
@@ -51,49 +51,49 @@ function parse_options(configure_params: string): IGypArgs {
 }
 
 export async function configure(additional_options?: string): Promise<boolean> {
-	let native_gyps = await nativeGyp.read_all_native_gyps("./");
+	const native_gyps = await nativeGyp.read_all_native_gyps("./");
 
-	let args: IGypArgs = parse_options(additional_options);
+	const args: IGypArgs = parse_options(additional_options);
 
 	// collect configuration options
-	for (let ng of native_gyps) {
-		let configure_params = ng.node_gyp_configure_parameters;
+	for (const ng of native_gyps) {
+		const configure_params = ng.node_gyp_configure_parameters;
 
 		if (!configure_params) {
 			continue;
 		}
 
-		let ngargs = parse_options(configure_params);
+		const ngargs = parse_options(configure_params);
 		args.gyp_arguments = args.gyp_arguments.concat(ngargs.gyp_arguments);
 		args.node_gyp_arguments = args.node_gyp_arguments.concat(ngargs.node_gyp_arguments);
 	}
 
-	let cmdargs = args.node_gyp_arguments.join(" ") + " -- " + args.gyp_arguments.join(" ");
+	const cmdargs = args.node_gyp_arguments.join(" ") + " -- " + args.gyp_arguments.join(" ");
 
-	let result = await gyp.configure(cmdargs);
+	const result = await gyp.configure(cmdargs);
 	return (result === 0);
 }
 
 export async function build(additional_options?: string): Promise<boolean> {
-	let native_gyps = await nativeGyp.read_all_native_gyps("./");
+	const native_gyps = await nativeGyp.read_all_native_gyps("./");
 
-	let args: IGypArgs = parse_options(additional_options);
+	const args: IGypArgs = parse_options(additional_options);
 
 	// collect build options
-	for (let ng of native_gyps) {
-		let configure_params = ng.node_gyp_build_parameters;
+	for (const ng of native_gyps) {
+		const configure_params = ng.node_gyp_build_parameters;
 
 		if (!configure_params) {
 			continue;
 		}
 
-		let ngargs = parse_options(configure_params);
+		const ngargs = parse_options(configure_params);
 		args.gyp_arguments = args.gyp_arguments.concat(ngargs.gyp_arguments);
 		args.node_gyp_arguments = args.node_gyp_arguments.concat(ngargs.node_gyp_arguments);
 	}
 
-	let cmdargs = args.node_gyp_arguments.join(" ") + " -- " + args.gyp_arguments.join(" ");
+	const cmdargs = args.node_gyp_arguments.join(" ") + " -- " + args.gyp_arguments.join(" ");
 
-	let result = await gyp.build(cmdargs);
+	const result = await gyp.build(cmdargs);
 	return (result === 0);
 }

@@ -1,5 +1,5 @@
 // tslint:disable-next-line:no-var-requires
-let npa_parse = require("npm-package-arg");
+const npa_parse = require("npm-package-arg");
 
 export interface IHostedParameters {
 	type: string;

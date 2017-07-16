@@ -79,17 +79,17 @@ interface IHostInfo {
 }
 
 function parse_shortcut(shortcut: string): IHostInfo {
-	let shortcut_regex_with_host = /(\S*)[:](\S*)[\/](\S*)/;
-	let shortcut_regex_without_host = /(\S*)[\/](\S*)/;
+	const shortcut_regex_with_host = /(\S*)[:](\S*)[\/](\S*)/;
+	const shortcut_regex_without_host = /(\S*)[\/](\S*)/;
 	if (shortcut_regex_with_host.test(shortcut)) {
-		let match = shortcut_regex_with_host.exec(shortcut);
+		const match = shortcut_regex_with_host.exec(shortcut);
 		return {
 			host_type: match[1],
 			username: match[2],
 			repo: match[3]
 		};
 	} else if (shortcut_regex_without_host.test(shortcut)) {
-		let match = shortcut_regex_without_host.exec(shortcut);
+		const match = shortcut_regex_without_host.exec(shortcut);
 		return {
 			host_type: match[1],
 			username: match[2],
@@ -110,7 +110,7 @@ export function parse_repository(): IParsedRepository {
 		parsed = npa(node_package.repository.url);
 	}
 
-	let parsed_shortcut = parse_shortcut(parsed.hosted.shortcut);
+	const parsed_shortcut = parse_shortcut(parsed.hosted.shortcut);
 
 	return {
 		repository_type: (parsed.type === "hosted") ? parsed.hosted.type : parsed.type,
