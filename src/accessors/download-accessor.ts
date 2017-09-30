@@ -1,9 +1,9 @@
 import * as ProgressBar from "progress";
 import url = require("url");
-import fs = require("fs");
+import * as fs from "../utilities/promisified_fs";
 
-import https_ = require("https");
 import http_ = require("http");
+import https_ = require("https");
 // tslint:disable-next-line:no-var-requires
 const http = require("follow-redirects").http;
 // tslint:disable-next-line:no-var-requires
@@ -29,14 +29,14 @@ process.on("SIGINT", () => {
 
 });
 
-export function cancel(downloadurl: string): boolean {
+export async function cancel(downloadurl: string): Promise<boolean> {
 	const download_item = _file_streams[downloadurl];
 	if (download_item) {
 		logger.info("cancelling ", download_item);
 		download_item.request.abort();
 		download_item.request.end();
 		download_item.filestream.end();
-		fs.unlink(download_item.filename);
+		await fs.unlink(download_item.filename);
 
 		delete _file_streams[downloadurl];
 		return true;
@@ -130,7 +130,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 		let filesize = 0;
 		let filebyteswritten = 0;
 
-		req.on("response", (res: http_.ClientResponse) => {
+		req.on("response", async (res: http_.ClientResponse) => {
 			if (res.statusCode === 404) {
 				reject("file not found - " + downloadurl);
 				return;
@@ -157,7 +157,7 @@ export function download(downloadurl: string, filename: string, displayProgress:
 			}
 
 			const file_directory = path.dirname(filename);
-			if (!fs.existsSync(file_directory)) {
+			if (!(await fs.exists(file_directory))) {
 				fs.mkdir(file_directory);
 			}
 

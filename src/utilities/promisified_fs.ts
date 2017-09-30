@@ -1,9 +1,15 @@
 import fs = require("fs");
-import path = require("path");
-import minimatch = require("minimatch");
 import glob = require("glob");
+import minimatch = require("minimatch");
+import path = require("path");
 
-export function readdir(path_: string | Buffer): Promise<string[]> {
+export interface WriteStream extends fs.WriteStream {
+
+}
+
+export let createWriteStream = fs.createWriteStream;
+
+export async function readdir(path_: string | Buffer): Promise<string[]> {
 	return new Promise<string[]>((resolve, reject) => {
 		fs.readdir(path_, (err, files) => {
 			if (err) {
@@ -15,7 +21,7 @@ export function readdir(path_: string | Buffer): Promise<string[]> {
 	});
 }
 
-export function stat(path_: string | Buffer): Promise<fs.Stats> {
+export async function stat(path_: string | Buffer): Promise<fs.Stats> {
 	return new Promise<any>((resolve, reject) => {
 		fs.stat(path_, (err, stats) => {
 			if (err) {
@@ -27,7 +33,7 @@ export function stat(path_: string | Buffer): Promise<fs.Stats> {
 	});
 }
 
-export function mkdir(file: string | Buffer): Promise<any> {
+export async function mkdir(file: string | Buffer): Promise<any> {
 	return new Promise<any>((resolve, reject) => {
 		fs.mkdir(file, (err) => {
 			if (err) {
@@ -39,7 +45,7 @@ export function mkdir(file: string | Buffer): Promise<any> {
 	});
 }
 
-export function rmdir(file: string | Buffer): Promise<any> {
+export async function rmdir(file: string | Buffer): Promise<any> {
 	return new Promise<any>((resolve, reject) => {
 		fs.rmdir(file, (err) => {
 			if (err) {
@@ -51,7 +57,7 @@ export function rmdir(file: string | Buffer): Promise<any> {
 	});
 }
 
-export function exists(file: string | Buffer): Promise<boolean> {
+export async function exists(file: string | Buffer): Promise<boolean> {
 	return new Promise<boolean>((resolve, reject) => {
 		fs.exists(file, (exists_) => {
 			resolve(exists_);
@@ -59,7 +65,7 @@ export function exists(file: string | Buffer): Promise<boolean> {
 	});
 }
 
-export function readFile(filename: string, encoding: string | null): Promise<string | Buffer> {
+export async function readFile(filename: string, encoding: string | null): Promise<string | Buffer> {
 	return new Promise<any>((resolve, reject) => {
 		fs.readFile(filename, encoding, (err, data) => {
 			if (err) {
@@ -71,7 +77,7 @@ export function readFile(filename: string, encoding: string | null): Promise<str
 	});
 }
 
-export function writeFile(filename: string, encoding: string, data: any): Promise<void> {
+export async function writeFile(filename: string, encoding: string, data: any): Promise<void> {
 	return new Promise<void>((resolve, reject) => {
 		fs.writeFile(filename, data, { encoding }, (err) => {
 			if (err) {
@@ -115,7 +121,7 @@ export function normalize_path(filepath: string): string {
 	}
 }
 
-function path_join(base: string, file_path: string) {
+function path_join(base: string, file_path: string): string {
 	const nbase = normalize_path(base);
 	const nfp = normalize_path(file_path);
 	if (nbase.endsWith("/") || nbase.endsWith("\\")) {
@@ -169,7 +175,7 @@ export function human_file_size(bytes: number, si?: boolean): string {
 	return bytes.toFixed(1) + " " + units[u];
 }
 
-export function list_folder_by_pattern(pattern: string): Promise<string[]> {
+export async function list_folder_by_pattern(pattern: string): Promise<string[]> {
 	return new Promise<string[]>((resolve, reject) => {
 		glob(pattern, {}, (er, files) => {
 			if (er) {

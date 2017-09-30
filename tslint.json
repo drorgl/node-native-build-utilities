@@ -9,7 +9,9 @@
         "max-line-length": [false],
         "no-string-literal": false,
         "class-name": false,
-        "no-namespace": [false]
+        "no-namespace": [false],
+        "interface-name":false,
+        "no-empty-interface":false
     },
     "extends": "tslint:recommended"
 }
